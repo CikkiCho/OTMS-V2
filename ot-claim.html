@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OT Claim Application - OTMS</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+    
+    .header {
+      background: #000000;
+      color: white;
+      padding: 24px 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+      border-bottom: 3px solid #333;
+    }
+    
+    .header-content {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header h1 { font-size: 24px; }
+    
+    .back-btn {
+      background: white;
+      border: 2px solid white;
+      color: #000;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+      font-weight: 600;
+    }
+    
+    .back-btn:hover { 
+      background: #f0f0f0;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border: 1px solid #e8e8e8;
+    }
+    
+    .form-group { margin-bottom: 20px; }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+    }
+    
+    input[type="text"],
+    input[type="date"],
+    input[type="number"],
+    input[type="file"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 5px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+    
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    
+    .btn {
+      background: #000000;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+    
+    .btn:hover {
+      background: #333;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .success-message, .error-message {
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .error-message {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .info-box {
+      background: #e7f3ff;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    
+    .info-box p {
+      color: #666;
+      font-size: 14px;
+      margin: 5px 0;
+    }
+    
+    .claim-type-box {
+      display: flex;
+      gap: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    
+    .claim-type-box label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      margin-bottom: 0;
+    }
+    
+    .calculation-info {
+      margin-top: 8px;
+      padding: 10px;
+      background: #e7f3ff;
+      border-radius: 5px;
+      font-size: 13px;
+      color: #0066cc;
+    }
+    
+    small {
+      color: #666;
+      font-size: 12px;
+      display: block;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-content">
+      <h1>💰 OT Claim Application</h1>
+      <a href="#" class="back-btn" onclick="goBack(); return false;">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div id="successMessage" class="success-message"></div>
+      <div id="errorMessage" class="error-message"></div>
+      
+      <div class="info-box">
+        <p><strong>Name:</strong> <span id="userName"><?= userName ?></span></p>
+        <p><strong>Team:</strong> <span id="userTeam"><?= userTeam ?></span></p>
+        <p><strong>Email:</strong> <span id="userEmail"><?= userEmail ?></span></p>
+      </div>
+      
+      <form id="claimForm">
+        <div class="form-group">
+          <label for="month">Month *</label>
+          <input type="month" id="month" name="month" required>
+          <small>Select the month for this OT claim</small>
+        </div>
+        
+        <div class="form-group">
+          <label for="totalOTHours">Total OT Hours to Claim *</label>
+          <input type="number" id="totalOTHours" name="totalOTHours" step="0.5" min="0.5" required onchange="calculateClaimAmount()">
+          <small>Enter total approved OT hours for this month</small>
+        </div>
+        
+        <div class="form-group">
+          <label for="claimAmount">Claim Amount (RM) *</label>
+          <input type="number" id="claimAmount" name="claimAmount" step="0.01" min="0" required readonly>
+          <div class="calculation-info">
+            <strong>💰 Calculation:</strong> <span id="calculationResult">RM 0.00</span>
+            <br><small>Rate will be calculated automatically based on your OT hours</small>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn" id="submitBtn">Submit OT Claim</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const webAppUrl = '<?= webAppUrl ?>';
+    const sessionId = '<?= sessionId ?>';
+    const userEmail = '<?= userEmail ?>';
+    const userName = '<?= userName ?>';
+    const userTeam = '<?= userTeam ?>';
+    
+    const claimForm = document.getElementById('claimForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+    
+    // OT hourly rate (can be adjusted)
+    const OT_RATE_PER_HOUR = 50; // RM per hour
+    
+    function calculateClaimAmount() {
+      const hours = parseFloat(document.getElementById('totalOTHours').value) || 0;
+      const amount = hours * OT_RATE_PER_HOUR;
+      
+      document.getElementById('claimAmount').value = amount.toFixed(2);
+      document.getElementById('calculationResult').textContent = 
+        'RM ' + amount.toFixed(2) + ' (' + hours + 'h × RM' + OT_RATE_PER_HOUR + '/h)';
+    }
+    
+    function showSuccess(message) {
+      successMessage.textContent = message;
+      successMessage.style.display = 'block';
+      errorMessage.style.display = 'none';
+    }
+    
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.style.display = 'block';
+      successMessage.style.display = 'none';
+    }
+    
+    function hideMessages() {
+      successMessage.style.display = 'none';
+      errorMessage.style.display = 'none';
+    }
+    
+    claimForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      hideMessages();
+      
+      const totalHours = parseFloat(document.getElementById('totalOTHours').value);
+      const claimAmount = parseFloat(document.getElementById('claimAmount').value);
+      const month = document.getElementById('month').value;
+      
+      const formData = {
+        name: userName,
+        month: month,
+        totalOTHours: totalHours,
+        claimAmount: claimAmount,
+        claimDate: new Date().toISOString().split('T')[0],
+        status: 'Pending'
+      };
+      
+      // Validate
+      if (totalHours <= 0) {
+        showError('Total OT hours must be greater than 0');
+        return;
+      }
+      
+      // Disable submit button
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      
+      // Submit to server
+      google.script.run
+        .withSuccessHandler(function(result) {
+          console.log('Submit result:', result);
+          if (result.success) {
+            // Show success popup
+            alert('OT Claim Submitted Successfully!\n\nYour claim for RM ' + claimAmount.toFixed(2) + ' has been submitted and is pending approval.');
+            
+            // Redirect back to dashboard
+            window.location.href = webAppUrl + '?page=staff-dashboard&sessionId=' + sessionId;
+          } else {
+            showError(result.message || 'Failed to submit claim');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit OT Claim';
+          }
+        })
+        .withFailureHandler(function(error) {
+          showError('Error: ' + error.message);
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit OT Claim';
+        })
+        .submitOTClaim(formData);
+    });
+    
+    function goBack() {
+      window.location.href = webAppUrl + '?page=staff-dashboard&sessionId=' + sessionId;
+    }
+  </script>
+</body>
+</html>

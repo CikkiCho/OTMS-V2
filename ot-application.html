@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OT Application - OTMS</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+    
+    .header {
+      background: #000000;
+      color: white;
+      padding: 24px 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+      border-bottom: 3px solid #333;
+    }
+    
+    .header-content {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header h1 {
+      font-size: 24px;
+    }
+    
+    .back-btn {
+      background: white;
+      border: 2px solid white;
+      color: #000;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+      font-weight: 600;
+    }
+    
+    .back-btn:hover {
+      background: #f0f0f0;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border: 1px solid #e8e8e8;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+    }
+    
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 5px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+    
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    
+    .btn {
+      background: #000000;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+    
+    .btn:hover {
+      background: #333;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .success-message,
+    .error-message {
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .error-message {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .info-box {
+      background: #e7f3ff;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    
+    .info-box p {
+      color: #666;
+      font-size: 14px;
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-content">
+      <h1>📝 Apply for Overtime</h1>
+      <a href="#" class="back-btn" onclick="goBack(); return false;">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div id="successMessage" class="success-message"></div>
+      <div id="errorMessage" class="error-message"></div>
+      
+      <div class="info-box">
+        <p><strong>Name:</strong> <span id="userName"><?= userName ?></span></p>
+        <p><strong>Team:</strong> <span id="userTeam"><?= userTeam ?></span></p>
+        <p><strong>Email:</strong> <span id="userEmail"><?= userEmail ?></span></p>
+        <p><strong>Remaining OT Hours:</strong> <span id="remainingHoursDisplay" style="font-weight: 700;">Loading...</span></p>
+      </div>
+      
+      <div id="blockWarning" style="display: none; background: #fee; border: 2px solid #dc2626; padding: 15px; border-radius: 5px; margin-bottom: 20px; color: #991b1b;">
+        <strong>⚠️ OT Limit Reached!</strong>
+        <p style="margin-top: 5px;">You have reached or exceeded the 104-hour limit. New OT applications are blocked.</p>
+      </div>
+      
+      <form id="otForm">
+        <div class="form-group">
+          <label for="date">OT Date *</label>
+          <input type="date" id="date" name="date" required>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="startTime">Start Time *</label>
+            <input type="time" id="startTime" name="startTime" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="endTime">End Time *</label>
+            <input type="time" id="endTime" name="endTime" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="totalHours">Total Hours *</label>
+          <input type="number" id="totalHours" name="totalHours" step="0.5" min="0.5" required readonly>
+        </div>
+        
+        <div class="form-group">
+          <label for="otType">OT Type *</label>
+          <select id="otType" name="otType" required>
+            <option value="">Select OT Type</option>
+            <option value="Operation">Operation</option>
+            <option value="Project">Project</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="isPublicHoliday">Is this a Public Holiday?</label>
+          <select id="isPublicHoliday" name="isPublicHoliday">
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="reason">Remark *</label>
+          <textarea id="reason" name="reason" placeholder="Please provide any remarks or additional information..." required></textarea>
+        </div>
+        
+        <button type="submit" class="btn" id="submitBtn">Submit OT Application</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const webAppUrl = '<?= webAppUrl ?>';
+    const sessionId = '<?= sessionId ?>';
+    const userEmail = '<?= userEmail ?>';
+    const userName = '<?= userName ?>';
+    const userTeam = '<?= userTeam ?>';
+    
+    console.log('=== OT APPLICATION PAGE ===');
+    console.log('User Email:', userEmail);
+    console.log('User Name:', userName);
+    console.log('User Team:', userTeam);
+    
+    const startTimeInput = document.getElementById('startTime');
+    const endTimeInput = document.getElementById('endTime');
+    const totalHoursInput = document.getElementById('totalHours');
+    const otForm = document.getElementById('otForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+    
+    let userRemainingHours = 104; // Will be loaded from backend
+    
+    // Load user's remaining hours
+    google.script.run
+      .withSuccessHandler(function(data) {
+        console.log('User dashboard data loaded:', data);
+        userRemainingHours = data.remainingHours || 104;
+        const displayEl = document.getElementById('remainingHoursDisplay');
+        displayEl.textContent = userRemainingHours.toFixed(1) + 'h / 104h';
+        
+        // Correct logic: remaining hours goes DOWN as OT is used
+        // 104h remaining = GREEN (no OT used yet)
+        // 14h remaining = AMBER (90h used, warning)
+        // 0h remaining = RED (104h used, blocked)
+        
+        if (userRemainingHours <= 0) {
+          // RED: No hours left, block form
+          displayEl.style.color = '#dc2626';
+          document.getElementById('blockWarning').style.display = 'block';
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'OT Limit Reached - Cannot Apply';
+          otForm.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
+        } else if (userRemainingHours <= 14) {
+          // AMBER: Warning zone (90h+ used)
+          displayEl.style.color = '#ea580c';
+        } else {
+          // GREEN: Safe zone
+          displayEl.style.color = '#15803d';
+        }
+      })
+      .withFailureHandler(function(error) {
+        console.error('Failed to load remaining hours:', error);
+      })
+      .getStaffDashboard(userEmail);
+    
+    // Function to calculate hours
+    function calculateHours() {
+      const startTime = startTimeInput.value;
+      const endTime = endTimeInput.value;
+      
+      console.log('Calculating hours - Start:', startTime, 'End:', endTime);
+      
+      if (startTime && endTime) {
+        const start = new Date('2000-01-01 ' + startTime);
+        const end = new Date('2000-01-01 ' + endTime);
+        
+        if (end < start) {
+          // Handle overnight OT
+          end.setDate(end.getDate() + 1);
+        }
+        
+        const diffMs = end - start;
+        const hours = diffMs / (1000 * 60 * 60);
+        totalHoursInput.value = hours.toFixed(2);
+        console.log('Calculated hours:', hours.toFixed(2));
+      }
+    }
+    
+    // Auto-calculate hours when time changes - multiple events for better compatibility
+    startTimeInput.addEventListener('change', calculateHours);
+    startTimeInput.addEventListener('blur', calculateHours);
+    startTimeInput.addEventListener('input', calculateHours);
+    
+    endTimeInput.addEventListener('change', calculateHours);
+    endTimeInput.addEventListener('blur', calculateHours);
+    endTimeInput.addEventListener('input', calculateHours);
+    
+    function showSuccess(message) {
+      successMessage.textContent = message;
+      successMessage.style.display = 'block';
+      errorMessage.style.display = 'none';
+    }
+    
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.style.display = 'block';
+      successMessage.style.display = 'none';
+    }
+    
+    function hideMessages() {
+      successMessage.style.display = 'none';
+      errorMessage.style.display = 'none';
+    }
+    
+    otForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      hideMessages();
+      
+      // Collect form data
+      const formData = {
+        name: userName,
+        team: userTeam,
+        date: document.getElementById('date').value,
+        startTime: document.getElementById('startTime').value,
+        endTime: document.getElementById('endTime').value,
+        totalHours: parseFloat(document.getElementById('totalHours').value),
+        otType: document.getElementById('otType').value,
+        isPublicHoliday: document.getElementById('isPublicHoliday').value,
+        proofAttendance: '',
+        reason: document.getElementById('reason').value,
+        status: 'Pending',
+        approvedBy: '',
+        approvalDate: ''
+      };
+      
+      console.log('Submitting form data:', formData);
+      
+      // Validate
+      if (formData.totalHours <= 0) {
+        showError('Total hours must be greater than 0');
+        return;
+      }
+      
+      if (!formData.date || !formData.startTime || !formData.endTime) {
+        showError('Please fill in all required fields');
+        return;
+      }
+      
+      // Check if exceeds remaining hours (client-side check)
+      if (formData.totalHours > userRemainingHours) {
+        showError('Cannot apply! Requested ' + formData.totalHours + 'h exceeds your remaining ' + userRemainingHours.toFixed(1) + 'h. You would exceed the 104h limit.');
+        return;
+      }
+      
+      // Disable submit button
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Validating...';
+      
+      // Submit to server (backend will perform additional validation using OTCalc module)
+      google.script.run
+        .withSuccessHandler(function(result) {
+          console.log('Submit result:', result);
+          if (result.success) {
+            console.log('✅ Submission successful! Row:', result.rowNumber, 'Status:', result.status);
+            
+            // Show success popup
+            alert('OT Application Submitted Successfully!\n\nYour OT application has been submitted and is pending approval.');
+            
+            // CRITICAL: Add timestamp to force fresh page load (prevent caching)
+            // This ensures dashboard fetches the newly added record
+            const timestamp = new Date().getTime();
+            window.location.href = webAppUrl + '?page=staff-dashboard&sessionId=' + sessionId + '&refresh=' + timestamp;
+          } else {
+            // Backend validation failed (using OTCalc module)
+            let errorMsg = result.message || 'Failed to submit application';
+            
+            // If backend provides detailed validation info, show it
+            if (result.remainingHours !== undefined) {
+              errorMsg += '\n\nYour remaining hours: ' + result.remainingHours.toFixed(1) + 'h';
+              errorMsg += '\nTotal OT hours: ' + (result.totalHours || 0).toFixed(1) + 'h';
+            }
+            
+            showError(errorMsg);
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit OT Application';
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('Submit error:', error);
+          showError('Error: ' + error.message);
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit OT Application';
+        })
+        .submitOTApplication(formData);
+    });
+    
+    function goBack() {
+      window.location.href = webAppUrl + '?page=staff-dashboard&sessionId=' + sessionId;
+    }
+    
+    // Set default date to today
+    document.getElementById('date').valueAsDate = new Date();
+  </script>
+</body>
+</html>

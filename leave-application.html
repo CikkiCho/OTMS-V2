@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leave Request - OTMS</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+    
+    .header {
+      background: #000000;
+      color: white;
+      padding: 24px 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+      border-bottom: 3px solid #333;
+    }
+    
+    .header-content {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header h1 { font-size: 24px; }
+    
+    .back-btn {
+      background: white;
+      border: 2px solid white;
+      color: #000;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+      font-weight: 600;
+    }
+    
+    .back-btn:hover { 
+      background: #f0f0f0;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border: 1px solid #e8e8e8;
+    }
+    
+    .form-group { margin-bottom: 20px; }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+    }
+    
+    input[type="date"],
+    input[type="number"],
+    input[type="file"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 5px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+    
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    
+    .btn {
+      background: #000000;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+    
+    .btn:hover {
+      background: #333;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .success-message, .error-message {
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .error-message {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .info-box {
+      background: #e7f3ff;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    
+    .info-box p {
+      color: #666;
+      font-size: 14px;
+      margin: 5px 0;
+    }
+    
+    .leave-balance {
+      background: #f0fdf4;
+      border-left: 4px solid #15803d;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    
+    .leave-balance p {
+      color: #15803d;
+      font-size: 15px;
+      font-weight: 600;
+      margin: 5px 0;
+    }
+    
+    small {
+      color: #666;
+      font-size: 12px;
+      display: block;
+      margin-top: 5px;
+    }
+    
+    .days-calculation {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #495057;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-content">
+      <h1>🏖️ Leave Request Application</h1>
+      <a href="#" class="back-btn" onclick="goBack(); return false;">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div id="successMessage" class="success-message"></div>
+      <div id="errorMessage" class="error-message"></div>
+      
+      <div class="info-box">
+        <p><strong>Name:</strong> <span id="userName"><?= userName ?></span></p>
+        <p><strong>Team:</strong> <span id="userTeam"><?= userTeam ?></span></p>
+        <p><strong>Email:</strong> <span id="userEmail"><?= userEmail ?></span></p>
+      </div>
+      
+      <div class="leave-balance">
+        <p>💰 Available Leave Balance: <span id="leaveBalance">14 days</span></p>
+        <small style="color: #15803d;">Annual Leave + Converted OT Leave</small>
+      </div>
+      
+      <form id="leaveForm">
+        <div class="form-group">
+          <label for="leaveType">Leave Type *</label>
+          <select id="leaveType" name="leaveType" required>
+            <option value="">Select Leave Type</option>
+            <option value="Annual Leave">Annual Leave</option>
+            <option value="Converted OT Leave">Converted OT Leave (from OT Claims)</option>
+            <option value="Emergency Leave">Emergency Leave</option>
+            <option value="Unpaid Leave">Unpaid Leave</option>
+            <option value="Medical Leave">Medical Leave (MC)</option>
+          </select>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="startDate">Start Date *</label>
+            <input type="date" id="startDate" name="startDate" required onchange="calculateDays()">
+          </div>
+          
+          <div class="form-group">
+            <label for="endDate">End Date *</label>
+            <input type="date" id="endDate" name="endDate" required onchange="calculateDays()">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="totalDays">Total Days *</label>
+          <input type="number" id="totalDays" name="totalDays" step="0.5" min="0.5" required readonly>
+          <div id="daysCalculation" class="days-calculation" style="display: none;">
+            <strong>📅 Duration:</strong> <span id="durationText">0 days</span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="reason">Reason for Leave *</label>
+          <textarea id="reason" name="reason" placeholder="Please provide reason for your leave request..." required></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="supportingDoc">Supporting Document (Optional)</label>
+          <input type="file" id="supportingDoc" name="supportingDoc" accept=".pdf,.jpg,.jpeg,.png">
+          <small>Upload if required (MC certificate, emergency proof, etc.)</small>
+        </div>
+        
+        <button type="submit" class="btn" id="submitBtn">Submit Leave Request</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const webAppUrl = '<?= webAppUrl ?>';
+    const sessionId = '<?= sessionId ?>';
+    const userEmail = '<?= userEmail ?>';
+    const userName = '<?= userName ?>';
+    const userTeam = '<?= userTeam ?>';
+    
+    const leaveForm = document.getElementById('leaveForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+    
+    function calculateDays() {
+      const startDate = new Date(document.getElementById('startDate').value);
+      const endDate = new Date(document.getElementById('endDate').value);
+      const daysCalc = document.getElementById('daysCalculation');
+      
+      if (startDate && endDate && endDate >= startDate) {
+        const diffTime = Math.abs(endDate - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // Include both start and end date
+        
+        document.getElementById('totalDays').value = diffDays;
+        document.getElementById('durationText').textContent = diffDays + ' day(s) leave';
+        daysCalc.style.display = 'block';
+      } else {
+        document.getElementById('totalDays').value = '';
+        daysCalc.style.display = 'none';
+      }
+    }
+    
+    function showSuccess(message) {
+      successMessage.textContent = message;
+      successMessage.style.display = 'block';
+      errorMessage.style.display = 'none';
+    }
+    
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.style.display = 'block';
+      successMessage.style.display = 'none';
+    }
+    
+    function hideMessages() {
+      successMessage.style.display = 'none';
+      errorMessage.style.display = 'none';
+    }
+    
+    leaveForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      hideMessages();
+      
+      const fileInput = document.getElementById('supportingDoc');
+      const totalDays = parseFloat(document.getElementById('totalDays').value);
+      
+      // Validate dates
+      const startDate = new Date(document.getElementById('startDate').value);
+      const endDate = new Date(document.getElementById('endDate').value);
+      
+      if (endDate < startDate) {
+        showError('End date cannot be before start date');
+        return;
+      }
+      
+      const formData = {
+        name: userName,
+        team: userTeam,
+        email: userEmail,
+        leaveType: document.getElementById('leaveType').value,
+        startDate: document.getElementById('startDate').value,
+        endDate: document.getElementById('endDate').value,
+        totalDays: totalDays,
+        reason: document.getElementById('reason').value,
+        supportingDoc: fileInput.files[0] ? fileInput.files[0].name : '',
+        status: 'Pending',
+        submittedDate: new Date().toISOString().split('T')[0]
+      };
+      
+      // Disable submit button
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      
+      // Submit to server
+      google.script.run
+        .withSuccessHandler(function(result) {
+          console.log('Submit result:', result);
+          if (result.success) {
+            alert('Leave Request Submitted Successfully!\n\nYour leave request for ' + totalDays + ' day(s) has been submitted and is pending approval.');
+            window.location.href = webAppUrl + '?page=staff-dashboard&sessionId=' + sessionId;
+          } else {
+            showError(result.message || 'Failed to submit leave request');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Leave Request';
+          }
+        })
+        .withFailureHandler(function(error) {
+          showError('Error: ' + error.message);
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Leave Request';
+        })
+        .submitLeaveRequest(formData);
+    });
+    
+    function goBack() {
+      window.location.href = webAppUrl + '?page=staff-dashboard&sessionId=' + sessionId;
+    }
+    
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('startDate').setAttribute('min', today);
+    document.getElementById('endDate').setAttribute('min', today);
+  </script>
+</body>
+</html>
