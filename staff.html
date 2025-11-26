@@ -942,60 +942,85 @@
     function loadDashboard() {
       console.log('=== LOADING DASHBOARD ===');
       console.log('User:', userName, 'Email:', userEmail);
-      google.script.run
-        .withSuccessHandler(function(data) {
-          console.log('✅ Dashboard data received:', data);
-          
-          // Check for error response
-          if (data.error) {
-            alert(data.error);
-            window.top.location.href = webAppUrl + '?page=login';
-            return;
-          }
-          
-          const totalHours = data.totalOTHours || 0;
-          const remaining = data.remainingHours || 104;
-          const apps = data.applications || [];
-          
-          console.log('Total Applications:', apps.length);
-          console.log('Total OT Hours:', totalHours);
-          console.log('Remaining Hours:', remaining);
-          console.log('Filtering for Pending status...');
-          
-          // Store all applications globally
-          allApplications = apps;
-          
-          // Count pending applications
-          const pendingApps = apps.filter(app => {
-            const isPending = app.Status === 'Pending';
-            console.log('  App:', app.Date, 'Status="' + app.Status + '"', 'isPending=' + isPending);
-            return isPending;
-          });
-          const pendingCount = pendingApps.length;
-          
-          console.log('✅ Pending Count:', pendingCount);
-          document.getElementById('pendingCount').textContent = pendingCount;
-          
-          // Update Total OT Hours card (all statuses)
-          document.getElementById('totalOTHours').textContent = totalHours.toFixed(1);
-          
-          // Update Remaining Hours card
-          const remainingEl = document.getElementById('remainingHours');
-          remainingEl.textContent = remaining.toFixed(1);
-          remainingEl.className = 'stat-value';
-          if (data.remainingColor === 'green') remainingEl.classList.add('green');
-          else if (data.remainingColor === 'amber') remainingEl.classList.add('amber');
-          else if (data.remainingColor === 'red') remainingEl.classList.add('red');
-          
-          document.getElementById('totalApplications').textContent = apps.length;
-          
-          displayApplications(apps);
-        })
-        .withFailureHandler(function(error) {
-          console.error('Dashboard load error:', error);
-          alert('Error loading dashboard: ' + error.message);
-        })
-        .getStaffDashboard(userEmail);
+
+      try {
+        google.script.run
+          .withSuccessHandler(function(data) {
+            try {
+              console.log('✅ Dashboard data received:', data);
+
+              // Check for error response
+              if (data && data.error) {
+                console.error('Backend error:', data.error);
+                alert(data.error);
+                window.top.location.href = webAppUrl + '?page=login';
+                return;
+              }
+
+              if (!data) {
+                console.error('ERROR: Data is null or undefined');
+                return;
+              }
+
+              const totalHours = data.totalOTHours || 0;
+              const remaining = data.remainingHours || 104;
+              const apps = data.applications || [];
+
+              console.log('Total Applications:', apps.length);
+              console.log('Total OT Hours:', totalHours);
+              console.log('Remaining Hours:', remaining);
+              console.log('Color:', data.remainingColor);
+              console.log('Filtering for Pending status...');
+
+              // Store all applications globally
+              allApplications = apps;
+
+              // Count pending applications
+              const pendingApps = apps.filter(app => {
+                const isPending = app.Status === 'Pending';
+                console.log('  App:', app.Date, 'Status="' + app.Status + '"', 'isPending=' + isPending);
+                return isPending;
+              });
+              const pendingCount = pendingApps.length;
+
+              console.log('✅ Pending Count:', pendingCount);
+
+              // Update DOM
+              const pendingEl = document.getElementById('pendingCount');
+              if (pendingEl) pendingEl.textContent = pendingCount;
+
+              // Update Total OT Hours card (all statuses)
+              const totalEl = document.getElementById('totalOTHours');
+              if (totalEl) totalEl.textContent = totalHours.toFixed(1);
+
+              // Update Remaining Hours card
+              const remainingEl = document.getElementById('remainingHours');
+              if (remainingEl) {
+                remainingEl.textContent = remaining.toFixed(1);
+                remainingEl.className = 'stat-value';
+                if (data.remainingColor === 'green') remainingEl.classList.add('green');
+                else if (data.remainingColor === 'amber') remainingEl.classList.add('amber');
+                else if (data.remainingColor === 'red') remainingEl.classList.add('red');
+              }
+
+              const appCountEl = document.getElementById('totalApplications');
+              if (appCountEl) appCountEl.textContent = apps.length;
+
+              displayApplications(apps);
+            } catch (err) {
+              console.error('Error in success handler:', err);
+              console.error('Stack:', err.stack);
+            }
+          })
+          .withFailureHandler(function(error) {
+            console.error('❌ Dashboard load FAILED:', error);
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
+          })
+          .getStaffDashboard(userEmail);
+      } catch (err) {
+        console.error('ERROR calling getStaffDashboard:', err);
+      }
     }
 
     function displayApplications(applications) {
@@ -1032,8 +1057,30 @@
 
     function formatDate(dateStr) {
       if (!dateStr) return 'N/A';
-      if (dateStr instanceof Date) return dateStr.toLocaleDateString();
-      return dateStr.toString().split('T')[0];
+
+      // If it's a Date object, format it
+      if (dateStr instanceof Date) {
+        return dateStr.toLocaleDateString('en-CA'); // Returns YYYY-MM-DD format
+      }
+
+      // If it's a string that looks like a date object's toString() output
+      // "Tue Nov 25 2025 00:00:00 GMT+0800 (Singapore Standard Time)"
+      if (typeof dateStr === 'string' && dateStr.includes('GMT')) {
+        try {
+          const date = new Date(dateStr);
+          return date.toLocaleDateString('en-CA');
+        } catch (e) {
+          return dateStr;
+        }
+      }
+
+      // If it's ISO format with 'T': "2025-11-25T00:00:00Z"
+      if (dateStr.toString().includes('T')) {
+        return dateStr.toString().split('T')[0];
+      }
+
+      // Otherwise return as-is
+      return dateStr.toString();
     }
 
     function handleLogout() {

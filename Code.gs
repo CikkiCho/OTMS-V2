@@ -439,36 +439,46 @@ function getStaffDashboard(email) {
     const otData = otSheet.getDataRange().getValues();
     const applications = [];
     let pendingCount = 0;
-    
+
     Logger.log('--- SCANNING OT_APPLICATIONS SHEET ---');
-    
+
     // Start from row 1 (skip header at row 0)
     for (let i = 1; i < otData.length; i++) {
       const row = otData[i];
-      
+
       // Skip empty rows
       if (!row[0]) continue;
-      
+
       const rowName = row[0] ? row[0].toString().trim() : '';
       const rowStatus = row[10] ? row[10].toString().trim() : 'Pending';
-      
+
       // Match by name
       if (rowName === userName) {
         const hours = parseFloat(row[5]) || 0;
-        
+
         // Count pending applications
         if (rowStatus === 'Pending') {
           pendingCount++;
         }
-        
+
+        // Convert date to string format for serialization
+        let dateStr = '';
+        if (row[2]) {
+          if (row[2] instanceof Date) {
+            dateStr = Utilities.formatDate(row[2], Session.getScriptTimeZone(), 'yyyy-MM-dd');
+          } else {
+            dateStr = row[2].toString();
+          }
+        }
+
         // Build application object
         applications.push({
           rowNumber: i + 1,
           Name: row[0] || '',
           Team: row[1] || '',
-          Date: row[2] || '',
-          StartTime: row[3] || '',
-          EndTime: row[4] || '',
+          Date: dateStr,
+          StartTime: row[3] ? row[3].toString() : '',
+          EndTime: row[4] ? row[4].toString() : '',
           TotalHours: hours,
           OT_Type: row[6] || '',
           Is_Public_Holiday: row[7] || '',
@@ -476,7 +486,7 @@ function getStaffDashboard(email) {
           Reason: row[9] || '',
           Status: rowStatus,
           ApprovedBy: row[11] || '',
-          Approval_Date: row[12] || ''
+          Approval_Date: row[12] ? row[12].toString() : ''
         });
       }
     }
@@ -498,8 +508,12 @@ function getStaffDashboard(email) {
     
     Logger.log('=== getStaffDashboard END ===');
     Logger.log('Returning: totalOTHours=' + otStats.totalOTHours + ', remainingHours=' + otStats.remainingHours + ', apps=' + applications.length + ', pending=' + pendingCount);
-    Logger.log('Result object: ' + JSON.stringify(result));
-    
+    Logger.log('First 3 applications:');
+    for (let i = 0; i < Math.min(applications.length, 3); i++) {
+      Logger.log('  App ' + (i+1) + ': ' + applications[i].Name + ' (' + applications[i].Date + ') Status="' + applications[i].Status + '"');
+    }
+    Logger.log('Result object keys: ' + Object.keys(result).join(', '));
+
     return result;
     
   } catch (error) {
@@ -593,18 +607,51 @@ function testStaffDashboard() {
   const testEmail = 'alihariz@malaysiaairports.com.my';
   Logger.log('=== TESTING getStaffDashboard ===');
   Logger.log('Test email: ' + testEmail);
-  
+
   const result = getStaffDashboard(testEmail);
-  
+
   Logger.log('=== RESULT ===');
   Logger.log('Result is null: ' + (result === null));
   Logger.log('Result is undefined: ' + (result === undefined));
   Logger.log('Result type: ' + typeof result);
   Logger.log('Total OT Hours: ' + (result ? result.totalOTHours : 'N/A'));
+  Logger.log('Remaining Hours: ' + (result ? result.remainingHours : 'N/A'));
   Logger.log('Applications count: ' + (result && result.applications ? result.applications.length : 'N/A'));
-  Logger.log('Full result:');
-  Logger.log(result);
-  
+  Logger.log('Pending count: ' + (result ? result.pendingCount : 'N/A'));
+
+  if (result && result.applications && result.applications.length > 0) {
+    Logger.log('\n=== APPLICATIONS RETURNED ===');
+    result.applications.forEach((app, idx) => {
+      Logger.log('App ' + (idx+1) + ': ' + app.Name + ' | Date: ' + app.Date + ' | Hours: ' + app.TotalHours + ' | Status: ' + app.Status);
+    });
+  } else {
+    Logger.log('⚠️ NO APPLICATIONS RETURNED');
+  }
+
+  return result;
+}
+
+// ======== TEST MANAGEMENT DASHBOARD ========
+function testManagementDashboard() {
+  Logger.log('=== TESTING getManagementDashboard ===');
+
+  const result = getManagementDashboard();
+
+  Logger.log('=== RESULT ===');
+  Logger.log('Total Staff: ' + result.totalStaff);
+  Logger.log('Total OT Hours: ' + result.totalOTHours);
+  Logger.log('Exceed Count: ' + result.exceedCount);
+  Logger.log('Pending Approvals: ' + result.pendingApprovals);
+  Logger.log('Applications count: ' + (result.applications ? result.applications.length : 'N/A'));
+
+  if (result.applications && result.applications.length > 0) {
+    Logger.log('\n=== FIRST 5 APPLICATIONS ===');
+    for (let i = 0; i < Math.min(result.applications.length, 5); i++) {
+      const app = result.applications[i];
+      Logger.log((i+1) + '. ' + app.Name + ' | Status: ' + app.Status + ' | Hours: ' + app.TotalHours);
+    }
+  }
+
   return result;
 }
 
@@ -684,25 +731,42 @@ function getManagementDashboard() {
     Logger.log('Staff Exceeding Limit (from module): ' + allStats.exceedCount);
     
     // Prepare applications array
-    const applications = validOtData.map(row => ({
-      Name: row[0] || '',
-      Team: row[1] || '',
-      Date: row[2] || '',
-      StartTime: row[3] || '',
-      EndTime: row[4] || '',
-      TotalHours: row[5] || 0,
-      OT_Type: row[6] || '',
-      Is_Public_Holiday: row[7] || '',
-      Proof_Attendance: row[8] || '',
-      Reason: row[9] || '',
-      Status: row[10] || '',
-      ApprovedBy: row[11] || '',
-      Approval_Date: row[12] || ''
-    }));
+    const applications = validOtData.map(row => {
+      // Convert date to string format for serialization
+      let dateStr = '';
+      if (row[2]) {
+        if (row[2] instanceof Date) {
+          dateStr = Utilities.formatDate(row[2], Session.getScriptTimeZone(), 'yyyy-MM-dd');
+        } else {
+          dateStr = row[2].toString();
+        }
+      }
+
+      return {
+        Name: row[0] || '',
+        Team: row[1] || '',
+        Date: dateStr,
+        StartTime: row[3] ? row[3].toString() : '',
+        EndTime: row[4] ? row[4].toString() : '',
+        TotalHours: row[5] || 0,
+        OT_Type: row[6] || '',
+        Is_Public_Holiday: row[7] || '',
+        Proof_Attendance: row[8] || '',
+        Reason: row[9] || '',
+        Status: row[10] ? row[10].toString() : '',
+        ApprovedBy: row[11] || '',
+        Approval_Date: row[12] ? row[12].toString() : ''
+      };
+    });
     
     Logger.log('=== getManagementDashboard END ===');
     Logger.log('Returning: totalStaff=' + allStats.staffCount + ', totalOTHours=' + allStats.totalOTHours.toFixed(1) + ', exceedCount=' + allStats.exceedCount + ', pendingApprovals=' + pendingApplicationsCount);
-    
+    Logger.log('Total applications to return: ' + applications.length);
+    Logger.log('First 3 applications:');
+    for (let i = 0; i < Math.min(applications.length, 3); i++) {
+      Logger.log('  App ' + (i+1) + ': ' + applications[i].Name + ' Status="' + applications[i].Status + '"');
+    }
+
     return {
       totalStaff: allStats.staffCount,
       totalOTHours: allStats.totalOTHours,
