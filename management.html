@@ -470,7 +470,8 @@
         <span>OTMS</span>
       </div>
       <div class="nav-links">
-        <a href="javascript:void(0)" class="nav-link active">Dashboard</a>
+        <a href="javascript:void(0)" class="nav-link active" onclick="showSection('dashboard')">Dashboard</a>
+        <a href="javascript:void(0)" class="nav-link" onclick="showSection('history')">History Analytics</a>
       </div>
     </div>
 
@@ -504,10 +505,12 @@
 
   <!-- Main Content -->
   <div class="main-content">
-    <div class="page-header">
-      <h1 class="page-title">Management Dashboard</h1>
-      <p class="page-subtitle">Overview of all staff overtime applications and statistics</p>
-    </div>
+    <!-- Dashboard Section -->
+    <div id="dashboardSection">
+      <div class="page-header">
+        <h1 class="page-title">Management Dashboard</h1>
+        <p class="page-subtitle">Overview of all staff overtime applications and statistics</p>
+      </div>
 
     <!-- Stats Grid -->
     <div class="stats-grid">
@@ -622,6 +625,57 @@
         </div>
       </div>
     </div>
+    </div>
+    <!-- End Dashboard Section -->
+
+    <!-- History Analytics Section -->
+    <div id="historySection" style="display: none;">
+      <div class="page-header">
+        <h1 class="page-title">History Analytics</h1>
+        <p class="page-subtitle">Historical OT data trends and statistics across all staff</p>
+      </div>
+
+      <!-- Historical Summary Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Historical Months</div>
+          <div class="stat-value" id="histTotalMonths">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total OT Hours (All Time)</div>
+          <div class="stat-value" id="histTotalHours">0h</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Applications</div>
+          <div class="stat-value" id="histTotalApps">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Overall Approval Rate</div>
+          <div class="stat-value" id="histApprovalRate">0%</div>
+        </div>
+      </div>
+
+      <!-- Monthly Trends -->
+      <div class="table-section">
+        <div class="table-header">Monthly Trends</div>
+        <div id="monthlyTrendsContent">
+          <div style="text-align: center; padding: 40px; color: #64748b;">
+            Loading...
+          </div>
+        </div>
+      </div>
+
+      <!-- Staff Performance -->
+      <div class="table-section" style="margin-top: 24px;">
+        <div class="table-header">Staff Historical Performance</div>
+        <div id="staffPerformanceContent">
+          <div style="text-align: center; padding: 40px; color: #64748b;">
+            Loading...
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- End History Section -->
   </div>
 
   <script>
@@ -901,6 +955,156 @@
           })
           .logout(sessionId);
       }
+    }
+
+    // ===== HISTORY ANALYTICS FUNCTIONS =====
+    function showSection(section) {
+      // Update navigation active state
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      // Toggle sections
+      if (section === 'dashboard') {
+        document.getElementById('dashboardSection').style.display = 'block';
+        document.getElementById('historySection').style.display = 'none';
+      } else if (section === 'history') {
+        document.getElementById('dashboardSection').style.display = 'none';
+        document.getElementById('historySection').style.display = 'block';
+        loadHistoryAnalytics();
+      }
+    }
+
+    function loadHistoryAnalytics() {
+      const monthlyContent = document.getElementById('monthlyTrendsContent');
+      const staffContent = document.getElementById('staffPerformanceContent');
+
+      monthlyContent.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;">Loading history...</div>';
+      staffContent.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;">Loading history...</div>';
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            displayHistoryAnalytics(result);
+          } else {
+            monthlyContent.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">Error: ' + (result.error || 'Unknown error') + '</div>';
+            staffContent.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">Error: ' + (result.error || 'Unknown error') + '</div>';
+          }
+        })
+        .withFailureHandler(function(error) {
+          monthlyContent.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">Error: ' + error.message + '</div>';
+          staffContent.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">Error: ' + error.message + '</div>';
+        })
+        .getManagementHistory();
+    }
+
+    function displayHistoryAnalytics(data) {
+      const monthlyContent = document.getElementById('monthlyTrendsContent');
+      const staffContent = document.getElementById('staffPerformanceContent');
+
+      // Check if we have history
+      if (!data.history || data.history.length === 0) {
+        monthlyContent.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;">No historical data available yet. Data will appear here after the first monthly archive.</div>';
+        staffContent.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;">No historical data available yet.</div>';
+
+        // Reset stats
+        document.getElementById('histTotalMonths').textContent = '0';
+        document.getElementById('histTotalHours').textContent = '0h';
+        document.getElementById('histTotalApps').textContent = '0';
+        document.getElementById('histApprovalRate').textContent = '0%';
+        return;
+      }
+
+      // Update summary stats
+      const summary = data.summary;
+      const monthlyStats = data.monthlyStats || [];
+      const approvalRate = summary.totalApplications > 0
+        ? Math.round((summary.totalApproved / summary.totalApplications) * 100)
+        : 0;
+
+      document.getElementById('histTotalMonths').textContent = monthlyStats.length;
+      document.getElementById('histTotalHours').textContent = summary.totalOTHours.toFixed(1) + 'h';
+      document.getElementById('histTotalApps').textContent = summary.totalApplications;
+      document.getElementById('histApprovalRate').textContent = approvalRate + '%';
+
+      // Display Monthly Trends
+      let monthlyHTML = '<table style="width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden;">';
+      monthlyHTML += `
+        <thead>
+          <tr style="background: #f1f5f9;">
+            <th style="padding: 12px; text-align: left; font-size: 13px; color: #475569;">Month</th>
+            <th style="padding: 12px; text-align: right; font-size: 13px; color: #475569;">Staff Count</th>
+            <th style="padding: 12px; text-align: right; font-size: 13px; color: #475569;">Total Hours</th>
+            <th style="padding: 12px; text-align: right; font-size: 13px; color: #475569;">Applications</th>
+            <th style="padding: 12px; text-align: right; font-size: 13px; color: #475569;">Approved</th>
+            <th style="padding: 12px; text-align: right; font-size: 13px; color: #475569;">Rejected</th>
+            <th style="padding: 12px; text-align: right; font-size: 13px; color: #475569;">Pending</th>
+            <th style="padding: 12px; text-align: right; font-size: 13px; color: #475569;">Avg Hours/Staff</th>
+          </tr>
+        </thead>
+        <tbody>
+      `;
+
+      monthlyStats.forEach(month => {
+        const monthName = new Date(month.month + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+        const avgHours = month.staffCount > 0 ? (month.totalHours / month.staffCount).toFixed(1) : '0.0';
+
+        monthlyHTML += `
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 12px; font-weight: 500; color: #1e293b;">${monthName}</td>
+            <td style="padding: 12px; text-align: right; color: #64748b;">${month.staffCount}</td>
+            <td style="padding: 12px; text-align: right; color: #15803d; font-weight: 600;">${month.totalHours.toFixed(1)}h</td>
+            <td style="padding: 12px; text-align: right; color: #64748b;">${month.totalApplications}</td>
+            <td style="padding: 12px; text-align: right; color: #059669;">${month.approvedCount}</td>
+            <td style="padding: 12px; text-align: right; color: #dc2626;">${month.rejectedCount}</td>
+            <td style="padding: 12px; text-align: right; color: #f59e0b;">${month.pendingCount}</td>
+            <td style="padding: 12px; text-align: right; color: #475569; font-weight: 500;">${avgHours}h</td>
+          </tr>
+        `;
+      });
+
+      monthlyHTML += '</tbody></table>';
+      monthlyContent.innerHTML = monthlyHTML;
+
+      // Display Staff Performance
+      const staffStats = data.staffStats || [];
+      let staffHTML = '<table style="width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden;">';
+      staffHTML += `
+        <thead>
+          <tr style="background: #f1f5f9;">
+            <th style="padding: 12px; text-align: left; font-size: 13px; color: #475569;">Staff Name</th>
+            <th style="padding: 12px; text-align: left; font-size: 13px; color: #475569;">Team</th>
+            <th style="padding: 12px; text-align: right; font-size: 13px; color: #475569;">Months Active</th>
+            <th style="padding: 12px; text-align: right; font-size: 13px; color: #475569;">Total Hours</th>
+            <th style="padding: 12px; text-align: right; font-size: 13px; color: #475569;">Applications</th>
+            <th style="padding: 12px; text-align: right; font-size: 13px; color: #475569;">Approved</th>
+            <th style="padding: 12px; text-align: right; font-size: 13px; color: #475569;">Rejected</th>
+            <th style="padding: 12px; text-align: right; font-size: 13px; color: #475569;">Avg Hours/Month</th>
+          </tr>
+        </thead>
+        <tbody>
+      `;
+
+      staffStats.forEach(staff => {
+        const avgPerMonth = staff.monthsActive > 0 ? (staff.totalHours / staff.monthsActive).toFixed(1) : '0.0';
+
+        staffHTML += `
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 12px; font-weight: 500; color: #1e293b;">${staff.name}</td>
+            <td style="padding: 12px; color: #64748b;">${staff.team}</td>
+            <td style="padding: 12px; text-align: right; color: #64748b;">${staff.monthsActive}</td>
+            <td style="padding: 12px; text-align: right; color: #15803d; font-weight: 600;">${staff.totalHours.toFixed(1)}h</td>
+            <td style="padding: 12px; text-align: right; color: #64748b;">${staff.totalApplications}</td>
+            <td style="padding: 12px; text-align: right; color: #059669;">${staff.approvedCount}</td>
+            <td style="padding: 12px; text-align: right; color: #dc2626;">${staff.rejectedCount}</td>
+            <td style="padding: 12px; text-align: right; color: #475569; font-weight: 500;">${avgPerMonth}h</td>
+          </tr>
+        `;
+      });
+
+      staffHTML += '</tbody></table>';
+      staffContent.innerHTML = staffHTML;
     }
 
     loadDashboard();

@@ -705,7 +705,8 @@
         <span>OTMS</span>
       </div>
       <div class="nav-links">
-        <a href="javascript:void(0)" class="nav-link active">Dashboard</a>
+        <a href="javascript:void(0)" class="nav-link active" onclick="showSection('dashboard')">Dashboard</a>
+        <a href="javascript:void(0)" class="nav-link" onclick="showSection('history')">History</a>
       </div>
     </div>
 
@@ -743,10 +744,12 @@
 
   <!-- Main Content -->
   <div class="main-content">
-    <div class="page-header">
-      <h1 class="page-title">Staff Dashboard</h1>
-      <p class="page-subtitle">Overview of your overtime applications and hours</p>
-    </div>
+    <!-- Dashboard Section -->
+    <div id="dashboardSection">
+      <div class="page-header">
+        <h1 class="page-title">Staff Dashboard</h1>
+        <p class="page-subtitle">Overview of your overtime applications and hours</p>
+      </div>
 
     <!-- Stats Grid -->
     <div class="stats-grid">
@@ -789,6 +792,54 @@
         </tbody>
       </table>
     </div>
+    </div>
+    <!-- End Dashboard Section -->
+
+    <!-- History Section -->
+    <div id="historySection" style="display: none;">
+      <div class="page-header">
+        <h1 class="page-title">OT History</h1>
+        <p class="page-subtitle">View your past overtime records by month</p>
+      </div>
+
+      <!-- History Stats Summary -->
+      <div class="stats-grid" id="historyStatsGrid">
+        <div class="stat-card">
+          <div class="stat-label">Total Months</div>
+          <div class="stat-value" id="historyTotalMonths">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Historical Hours</div>
+          <div class="stat-value" id="historyTotalHours">0h</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Applications</div>
+          <div class="stat-value" id="historyTotalApps">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Approval Rate</div>
+          <div class="stat-value" id="historyApprovalRate">0%</div>
+        </div>
+      </div>
+
+      <!-- History Records by Month -->
+      <div class="table-section">
+        <div class="table-header">
+          Monthly Records
+          <div style="margin-left: auto;">
+            <button onclick="downloadAllHistory()" class="action-btn" style="background: #15803d; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;">
+              Download All History
+            </button>
+          </div>
+        </div>
+        <div id="historyContent">
+          <div style="text-align: center; padding: 40px; color: #64748b;">
+            Loading history...
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- End History Section -->
   </div>
 
   <!-- Edit Modal -->
@@ -1399,6 +1450,162 @@
           })
           .logout(sessionId);
       }
+    }
+
+    // ===== HISTORY FUNCTIONS =====
+    function showSection(section) {
+      // Update navigation active state
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      // Toggle sections
+      if (section === 'dashboard') {
+        document.getElementById('dashboardSection').style.display = 'block';
+        document.getElementById('historySection').style.display = 'none';
+      } else if (section === 'history') {
+        document.getElementById('dashboardSection').style.display = 'none';
+        document.getElementById('historySection').style.display = 'block';
+        loadHistory();
+      }
+    }
+
+    function loadHistory() {
+      const historyContent = document.getElementById('historyContent');
+      historyContent.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;">Loading history...</div>';
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            displayHistory(result.history);
+          } else {
+            historyContent.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">Error loading history: ' + (result.error || 'Unknown error') + '</div>';
+          }
+        })
+        .withFailureHandler(function(error) {
+          historyContent.innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">Error: ' + error.message + '</div>';
+        })
+        .getStaffHistory(userEmail);
+    }
+
+    function displayHistory(history) {
+      const historyContent = document.getElementById('historyContent');
+
+      if (!history || history.length === 0) {
+        historyContent.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;">No history available yet. Historical data will appear here after the first monthly archive.</div>';
+
+        // Reset stats
+        document.getElementById('historyTotalMonths').textContent = '0';
+        document.getElementById('historyTotalHours').textContent = '0h';
+        document.getElementById('historyTotalApps').textContent = '0';
+        document.getElementById('historyApprovalRate').textContent = '0%';
+        return;
+      }
+
+      // Calculate totals
+      let totalHours = 0;
+      let totalApps = 0;
+      let totalApproved = 0;
+
+      history.forEach(record => {
+        totalHours += record.TotalHours || 0;
+        totalApps += record.ApplicationsCount || 0;
+        totalApproved += record.ApprovedCount || 0;
+      });
+
+      const approvalRate = totalApps > 0 ? Math.round((totalApproved / totalApps) * 100) : 0;
+
+      // Update stats
+      document.getElementById('historyTotalMonths').textContent = history.length;
+      document.getElementById('historyTotalHours').textContent = totalHours.toFixed(1) + 'h';
+      document.getElementById('historyTotalApps').textContent = totalApps;
+      document.getElementById('historyApprovalRate').textContent = approvalRate + '%';
+
+      // Build history HTML
+      let html = '';
+
+      history.forEach((record, index) => {
+        const monthName = new Date(record.Month + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+
+        html += `
+          <div class="history-month-card" style="background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <div>
+                <h3 style="font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 4px;">${monthName}</h3>
+                <p style="font-size: 14px; color: #64748b;">Archived on ${record.ArchivedDate || 'N/A'}</p>
+              </div>
+              <button onclick="downloadMonthHistory('${record.Month}')" style="background: #15803d; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                Download Report
+              </button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 16px;">
+              <div style="background: #f1f5f9; padding: 12px; border-radius: 8px;">
+                <div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">Total Hours</div>
+                <div style="font-size: 20px; font-weight: 600; color: #15803d;">${record.TotalHours.toFixed(1)}h</div>
+              </div>
+              <div style="background: #f1f5f9; padding: 12px; border-radius: 8px;">
+                <div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">Applications</div>
+                <div style="font-size: 20px; font-weight: 600; color: #0284c7;">${record.ApplicationsCount}</div>
+              </div>
+              <div style="background: #f1f5f9; padding: 12px; border-radius: 8px;">
+                <div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">Approved</div>
+                <div style="font-size: 20px; font-weight: 600; color: #059669;">${record.ApprovedCount}</div>
+              </div>
+              <div style="background: #f1f5f9; padding: 12px; border-radius: 8px;">
+                <div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">Rejected</div>
+                <div style="font-size: 20px; font-weight: 600; color: #dc2626;">${record.RejectedCount}</div>
+              </div>
+            </div>
+
+            <details style="margin-top: 12px;">
+              <summary style="cursor: pointer; padding: 8px; background: #f8fafc; border-radius: 6px; font-weight: 500; color: #475569;">
+                View Applications (${record.ApplicationsCount})
+              </summary>
+              <div style="margin-top: 12px; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                  <thead>
+                    <tr style="background: #f1f5f9;">
+                      <th style="padding: 8px; text-align: left; font-size: 12px; color: #64748b;">Date</th>
+                      <th style="padding: 8px; text-align: left; font-size: 12px; color: #64748b;">Time</th>
+                      <th style="padding: 8px; text-align: left; font-size: 12px; color: #64748b;">Hours</th>
+                      <th style="padding: 8px; text-align: left; font-size: 12px; color: #64748b;">Type</th>
+                      <th style="padding: 8px; text-align: left; font-size: 12px; color: #64748b;">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${record.Applications.map(app => {
+                      const statusClass = app.Status === 'Approved' ? 'color: #059669' : (app.Status === 'Rejected' ? 'color: #dc2626' : 'color: #f59e0b');
+                      return `
+                        <tr style="border-bottom: 1px solid #e2e8f0;">
+                          <td style="padding: 8px; font-size: 13px;">${app.Date || 'N/A'}</td>
+                          <td style="padding: 8px; font-size: 13px;">${app.StartTime || ''} - ${app.EndTime || ''}</td>
+                          <td style="padding: 8px; font-size: 13px;">${parseFloat(app.TotalHours || 0).toFixed(1)}h</td>
+                          <td style="padding: 8px; font-size: 13px;">${app.OT_Type || 'N/A'}</td>
+                          <td style="padding: 8px; font-size: 13px; font-weight: 600; ${statusClass}">${app.Status || 'Pending'}</td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          </div>
+        `;
+      });
+
+      historyContent.innerHTML = html;
+    }
+
+    function downloadMonthHistory(month) {
+      alert('Download functionality for ' + month + ' will be implemented. This will generate a PDF/Excel report of the month\'s OT data.');
+      // TODO: Implement download functionality
+    }
+
+    function downloadAllHistory() {
+      alert('Download all history functionality will be implemented. This will generate a comprehensive report of all historical OT data.');
+      // TODO: Implement download all functionality
     }
 
     loadDashboard();

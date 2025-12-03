@@ -1307,3 +1307,491 @@ function fixBlankStatusValues() {
   Logger.log('====== FIX COMPLETE ======');
 }
 
+// ======== MONTHLY ARCHIVE FUNCTION ========
+/**
+ * Archives all OT data for the current month and resets the system for a new month
+ * This should be run at the end of each month (manually or via time-based trigger)
+ *
+ * Process:
+ * 1. Get all staff from Users sheet
+ * 2. For each staff, collect their OT applications
+ * 3. Calculate monthly statistics (total hours, counts by status)
+ * 4. Store applications as JSON in OT_History sheet
+ * 5. Archive current OT_Applications (move to history)
+ * 6. Reset remaining hours to 104 for all staff
+ *
+ * @returns {Object} Result object with success status and details
+ */
+function monthlyArchive() {
+  Logger.log('=== MONTHLY ARCHIVE START ===');
+  Logger.log('Archive Time: ' + new Date().toISOString());
+
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+
+    // Get all required sheets
+    const usersSheet = ss.getSheetByName('Users');
+    const otSheet = ss.getSheetByName('OT_Applications');
+    const historySheet = ss.getSheetByName('OT_History');
+
+    if (!usersSheet || !otSheet) {
+      Logger.log('ERROR: Required sheets not found');
+      return { success: false, error: 'Missing required sheets (Users or OT_Applications)' };
+    }
+
+    // Create history sheet if it doesn't exist
+    if (!historySheet) {
+      Logger.log('OT_History sheet not found - running setup');
+      setupOTHistorySheet(ss);
+    }
+
+    const historySheetFinal = ss.getSheetByName('OT_History');
+
+    // Get current month and year
+    const now = new Date();
+    const currentMonth = Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyy-MM');
+    const currentYear = now.getFullYear();
+
+    Logger.log('Archiving data for: ' + currentMonth);
+
+    // Get all users (skip header row)
+    const usersData = usersSheet.getDataRange().getValues();
+    const headers = usersData[0];
+    const users = usersData.slice(1);
+
+    Logger.log('Found ' + users.length + ' users to process');
+
+    // Get all OT applications
+    const otData = otSheet.getDataRange().getValues();
+    const otHeaders = otData[0];
+    const applications = otData.slice(1);
+
+    Logger.log('Found ' + applications.length + ' OT applications');
+
+    let archivedCount = 0;
+
+    // Process each staff member
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i];
+      const staffName = user[0];  // Column A: Name
+      const staffEmail = user[1]; // Column B: Email
+      const role = user[2];        // Column C: Role
+      const team = user[3];        // Column D: Team
+
+      // Skip if not staff or if empty row
+      if (!staffName || !staffEmail) {
+        continue;
+      }
+
+      Logger.log('\nProcessing: ' + staffName + ' (' + staffEmail + ')');
+
+      // Find all applications for this staff
+      const staffApplications = [];
+      let totalHours = 0;
+      let approvedCount = 0;
+      let rejectedCount = 0;
+      let pendingCount = 0;
+
+      for (let j = 0; j < applications.length; j++) {
+        const app = applications[j];
+        const appName = app[0];  // Name
+
+        // Skip empty rows
+        if (!appName) continue;
+
+        // Check if this application belongs to current staff
+        if (appName.trim() === staffName.trim()) {
+          // Build application object
+          const applicationObj = {
+            Name: app[0],
+            Team: app[1],
+            Date: app[2] ? Utilities.formatDate(new Date(app[2]), Session.getScriptTimeZone(), 'yyyy-MM-dd') : '',
+            StartTime: app[3] ? (app[3] instanceof Date ? Utilities.formatDate(app[3], Session.getScriptTimeZone(), 'HH:mm') : app[3].toString()) : '',
+            EndTime: app[4] ? (app[4] instanceof Date ? Utilities.formatDate(app[4], Session.getScriptTimeZone(), 'HH:mm') : app[4].toString()) : '',
+            TotalHours: parseFloat(app[5]) || 0,
+            OT_Type: app[6] || '',
+            IsPublicHoliday: app[7] || '',
+            ProofAttendance: app[8] || '',
+            Reason: app[9] || '',
+            Status: app[10] || 'Pending',
+            ApprovedBy: app[11] || '',
+            ApprovalDate: app[12] ? Utilities.formatDate(new Date(app[12]), Session.getScriptTimeZone(), 'yyyy-MM-dd') : ''
+          };
+
+          staffApplications.push(applicationObj);
+
+          // Calculate statistics
+          const hours = parseFloat(app[5]) || 0;
+          totalHours += hours;
+
+          const status = (app[10] || 'Pending').toString().trim();
+          if (status === 'Approved') {
+            approvedCount++;
+          } else if (status === 'Rejected') {
+            rejectedCount++;
+          } else {
+            pendingCount++;
+          }
+        }
+      }
+
+      Logger.log('  Applications: ' + staffApplications.length);
+      Logger.log('  Total Hours: ' + totalHours);
+      Logger.log('  Approved: ' + approvedCount + ', Rejected: ' + rejectedCount + ', Pending: ' + pendingCount);
+
+      // Skip staff with no OT applications for this month
+      if (staffApplications.length === 0) {
+        Logger.log('  ⏭️ Skipping - No applications for this month');
+        continue;
+      }
+
+      // Convert applications to JSON
+      const applicationsJSON = JSON.stringify(staffApplications);
+
+      // Prepare row for OT_History sheet
+      const historyRow = [
+        currentMonth,              // Month (e.g., "2025-11")
+        currentYear,               // Year
+        staffName,                 // Staff_Name
+        staffEmail,                // Staff_Email
+        team || '',                // Team
+        totalHours,                // Total_OT_Hours
+        staffApplications.length,  // Applications_Count
+        approvedCount,             // Approved_Count
+        rejectedCount,             // Rejected_Count
+        pendingCount,              // Pending_Count
+        applicationsJSON,          // Applications_JSON
+        new Date()                 // Created_Date
+      ];
+
+      // Append to history sheet
+      historySheetFinal.appendRow(historyRow);
+      archivedCount++;
+
+      Logger.log('  ✅ Archived to OT_History');
+    }
+
+    Logger.log('\n=== CLEARING OT_Applications SHEET ===');
+
+    // Clear all OT applications (keep header)
+    if (applications.length > 0) {
+      const lastRow = otSheet.getLastRow();
+      if (lastRow > 1) {
+        otSheet.deleteRows(2, lastRow - 1);
+        Logger.log('Cleared ' + (lastRow - 1) + ' rows from OT_Applications');
+      }
+    }
+
+    Logger.log('\n=== RESETTING STAFF REMAINING HOURS ===');
+
+    // Reset remaining hours to 104 for all staff
+    // Note: The remaining hours are calculated dynamically from applications
+    // So clearing applications automatically resets remaining hours
+    Logger.log('Remaining hours automatically reset (no applications = 104 hours available)');
+
+    Logger.log('\n=== MONTHLY ARCHIVE COMPLETE ===');
+    Logger.log('✅ Successfully archived ' + archivedCount + ' staff records for ' + currentMonth);
+    Logger.log('✅ OT_Applications sheet cleared');
+    Logger.log('✅ System ready for new month');
+
+    return {
+      success: true,
+      message: 'Monthly archive completed successfully',
+      details: {
+        month: currentMonth,
+        staffArchived: archivedCount,
+        applicationsCleared: applications.length
+      }
+    };
+
+  } catch (error) {
+    Logger.log('ERROR in monthlyArchive: ' + error.toString());
+    Logger.log('Stack trace: ' + error.stack);
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+// ======== GET STAFF HISTORY FUNCTION ========
+/**
+ * Retrieves historical OT data for a specific staff member
+ * @param {string} email - Staff email address
+ * @returns {Object} Object containing historical data for the staff member
+ */
+function getStaffHistory(email) {
+  Logger.log('=== GET STAFF HISTORY ===');
+  Logger.log('Email: ' + email);
+
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const historySheet = ss.getSheetByName('OT_History');
+
+    if (!historySheet) {
+      Logger.log('OT_History sheet not found');
+      return {
+        success: true,
+        history: [],
+        message: 'No history available yet'
+      };
+    }
+
+    // Get all history data
+    const data = historySheet.getDataRange().getValues();
+    const headers = data[0];
+    const rows = data.slice(1);
+
+    Logger.log('Total history records: ' + rows.length);
+
+    // Filter records for this staff member
+    const staffHistory = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const month = row[0];          // Month
+      const year = row[1];           // Year
+      const staffName = row[2];      // Staff_Name
+      const staffEmail = row[3];     // Staff_Email
+      const team = row[4];           // Team
+      const totalHours = row[5];     // Total_OT_Hours
+      const appsCount = row[6];      // Applications_Count
+      const approvedCount = row[7];  // Approved_Count
+      const rejectedCount = row[8];  // Rejected_Count
+      const pendingCount = row[9];   // Pending_Count
+      const appsJSON = row[10];      // Applications_JSON
+      const createdDate = row[11];   // Created_Date
+
+      // Check if this record belongs to the staff
+      if (staffEmail && staffEmail.toString().trim() === email.trim()) {
+        // Parse applications JSON
+        let applications = [];
+        try {
+          if (appsJSON) {
+            applications = JSON.parse(appsJSON);
+          }
+        } catch (e) {
+          Logger.log('Error parsing JSON for month ' + month + ': ' + e.toString());
+          applications = [];
+        }
+
+        // Build history record
+        const historyRecord = {
+          Month: month,
+          Year: year,
+          StaffName: staffName,
+          Team: team,
+          TotalHours: parseFloat(totalHours) || 0,
+          ApplicationsCount: parseInt(appsCount) || 0,
+          ApprovedCount: parseInt(approvedCount) || 0,
+          RejectedCount: parseInt(rejectedCount) || 0,
+          PendingCount: parseInt(pendingCount) || 0,
+          Applications: applications,
+          ArchivedDate: createdDate ? Utilities.formatDate(new Date(createdDate), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss') : ''
+        };
+
+        staffHistory.push(historyRecord);
+      }
+    }
+
+    // Sort by month (newest first)
+    staffHistory.sort((a, b) => {
+      return b.Month.localeCompare(a.Month);
+    });
+
+    Logger.log('Found ' + staffHistory.length + ' historical records for ' + email);
+
+    return {
+      success: true,
+      history: staffHistory,
+      totalRecords: staffHistory.length
+    };
+
+  } catch (error) {
+    Logger.log('ERROR in getStaffHistory: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString(),
+      history: []
+    };
+  }
+}
+
+// ======== GET MANAGEMENT HISTORY FUNCTION ========
+/**
+ * Retrieves historical OT data for management analytics
+ * Can filter by date range or return all history
+ * @param {string} startMonth - Optional start month in YYYY-MM format
+ * @param {string} endMonth - Optional end month in YYYY-MM format
+ * @returns {Object} Object containing aggregated historical data
+ */
+function getManagementHistory(startMonth, endMonth) {
+  Logger.log('=== GET MANAGEMENT HISTORY ===');
+  Logger.log('Start Month: ' + (startMonth || 'All'));
+  Logger.log('End Month: ' + (endMonth || 'All'));
+
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const historySheet = ss.getSheetByName('OT_History');
+
+    if (!historySheet) {
+      Logger.log('OT_History sheet not found');
+      return {
+        success: true,
+        history: [],
+        summary: {},
+        message: 'No history available yet'
+      };
+    }
+
+    // Get all history data
+    const data = historySheet.getDataRange().getValues();
+    const headers = data[0];
+    const rows = data.slice(1);
+
+    Logger.log('Total history records: ' + rows.length);
+
+    // Process all records
+    const historyRecords = [];
+    let totalOTHours = 0;
+    let totalApplications = 0;
+    let totalApproved = 0;
+    let totalRejected = 0;
+    let totalPending = 0;
+    const monthlyStats = {};
+    const staffStats = {};
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const month = row[0];          // Month
+      const year = row[1];           // Year
+      const staffName = row[2];      // Staff_Name
+      const staffEmail = row[3];     // Staff_Email
+      const team = row[4];           // Team
+      const totalHours = parseFloat(row[5]) || 0;
+      const appsCount = parseInt(row[6]) || 0;
+      const approvedCount = parseInt(row[7]) || 0;
+      const rejectedCount = parseInt(row[8]) || 0;
+      const pendingCount = parseInt(row[9]) || 0;
+      const appsJSON = row[10];      // Applications_JSON
+      const createdDate = row[11];   // Created_Date
+
+      // Skip empty rows
+      if (!month || !staffName) continue;
+
+      // Apply date range filter if provided
+      if (startMonth && month < startMonth) continue;
+      if (endMonth && month > endMonth) continue;
+
+      // Parse applications JSON
+      let applications = [];
+      try {
+        if (appsJSON) {
+          applications = JSON.parse(appsJSON);
+        }
+      } catch (e) {
+        Logger.log('Error parsing JSON for ' + staffName + ' / ' + month + ': ' + e.toString());
+      }
+
+      // Build record
+      const record = {
+        Month: month,
+        Year: year,
+        StaffName: staffName,
+        StaffEmail: staffEmail,
+        Team: team,
+        TotalHours: totalHours,
+        ApplicationsCount: appsCount,
+        ApprovedCount: approvedCount,
+        RejectedCount: rejectedCount,
+        PendingCount: pendingCount,
+        Applications: applications,
+        ArchivedDate: createdDate ? Utilities.formatDate(new Date(createdDate), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss') : ''
+      };
+
+      historyRecords.push(record);
+
+      // Aggregate totals
+      totalOTHours += totalHours;
+      totalApplications += appsCount;
+      totalApproved += approvedCount;
+      totalRejected += rejectedCount;
+      totalPending += pendingCount;
+
+      // Monthly aggregation
+      if (!monthlyStats[month]) {
+        monthlyStats[month] = {
+          month: month,
+          totalHours: 0,
+          totalApplications: 0,
+          staffCount: 0,
+          approvedCount: 0,
+          rejectedCount: 0,
+          pendingCount: 0
+        };
+      }
+      monthlyStats[month].totalHours += totalHours;
+      monthlyStats[month].totalApplications += appsCount;
+      monthlyStats[month].staffCount += 1;
+      monthlyStats[month].approvedCount += approvedCount;
+      monthlyStats[month].rejectedCount += rejectedCount;
+      monthlyStats[month].pendingCount += pendingCount;
+
+      // Staff aggregation
+      if (!staffStats[staffEmail]) {
+        staffStats[staffEmail] = {
+          name: staffName,
+          email: staffEmail,
+          team: team,
+          totalHours: 0,
+          totalApplications: 0,
+          monthsActive: 0,
+          approvedCount: 0,
+          rejectedCount: 0,
+          pendingCount: 0
+        };
+      }
+      staffStats[staffEmail].totalHours += totalHours;
+      staffStats[staffEmail].totalApplications += appsCount;
+      staffStats[staffEmail].monthsActive += 1;
+      staffStats[staffEmail].approvedCount += approvedCount;
+      staffStats[staffEmail].rejectedCount += rejectedCount;
+      staffStats[staffEmail].pendingCount += pendingCount;
+    }
+
+    // Sort records by month (newest first)
+    historyRecords.sort((a, b) => b.Month.localeCompare(a.Month));
+
+    // Convert stats objects to arrays
+    const monthlyStatsArray = Object.values(monthlyStats).sort((a, b) => b.month.localeCompare(a.month));
+    const staffStatsArray = Object.values(staffStats).sort((a, b) => b.totalHours - a.totalHours);
+
+    Logger.log('Processed ' + historyRecords.length + ' records');
+    Logger.log('Total OT Hours: ' + totalOTHours);
+
+    return {
+      success: true,
+      history: historyRecords,
+      summary: {
+        totalOTHours: totalOTHours,
+        totalApplications: totalApplications,
+        totalApproved: totalApproved,
+        totalRejected: totalRejected,
+        totalPending: totalPending,
+        recordCount: historyRecords.length
+      },
+      monthlyStats: monthlyStatsArray,
+      staffStats: staffStatsArray
+    };
+
+  } catch (error) {
+    Logger.log('ERROR in getManagementHistory: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString(),
+      history: [],
+      summary: {}
+    };
+  }
+}
+
