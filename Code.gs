@@ -471,14 +471,33 @@ function getStaffDashboard(email) {
           }
         }
 
+        // Format time fields as HH:MM
+        let startTimeStr = '';
+        if (row[3]) {
+          if (row[3] instanceof Date) {
+            startTimeStr = Utilities.formatDate(row[3], Session.getScriptTimeZone(), 'HH:mm');
+          } else {
+            startTimeStr = row[3].toString();
+          }
+        }
+
+        let endTimeStr = '';
+        if (row[4]) {
+          if (row[4] instanceof Date) {
+            endTimeStr = Utilities.formatDate(row[4], Session.getScriptTimeZone(), 'HH:mm');
+          } else {
+            endTimeStr = row[4].toString();
+          }
+        }
+
         // Build application object
         applications.push({
           rowNumber: i + 1,
           Name: row[0] || '',
           Team: row[1] || '',
           Date: dateStr,
-          StartTime: row[3] ? row[3].toString() : '',
-          EndTime: row[4] ? row[4].toString() : '',
+          StartTime: startTimeStr,
+          EndTime: endTimeStr,
           TotalHours: hours,
           OT_Type: row[6] || '',
           Is_Public_Holiday: row[7] || '',
@@ -742,12 +761,31 @@ function getManagementDashboard() {
         }
       }
 
+      // Format time fields as HH:MM
+      let startTimeStr = '';
+      if (row[3]) {
+        if (row[3] instanceof Date) {
+          startTimeStr = Utilities.formatDate(row[3], Session.getScriptTimeZone(), 'HH:mm');
+        } else {
+          startTimeStr = row[3].toString();
+        }
+      }
+
+      let endTimeStr = '';
+      if (row[4]) {
+        if (row[4] instanceof Date) {
+          endTimeStr = Utilities.formatDate(row[4], Session.getScriptTimeZone(), 'HH:mm');
+        } else {
+          endTimeStr = row[4].toString();
+        }
+      }
+
       return {
         Name: row[0] || '',
         Team: row[1] || '',
         Date: dateStr,
-        StartTime: row[3] ? row[3].toString() : '',
-        EndTime: row[4] ? row[4].toString() : '',
+        StartTime: startTimeStr,
+        EndTime: endTimeStr,
         TotalHours: row[5] || 0,
         OT_Type: row[6] || '',
         Is_Public_Holiday: row[7] || '',

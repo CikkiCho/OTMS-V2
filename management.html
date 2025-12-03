@@ -7,143 +7,154 @@
   <title>Management Dashboard - OTMS</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
+    body {
       font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
       background: #f8fafc;
       min-height: 100vh;
-      display: flex;
     }
-    
-    .sidebar {
-      width: 260px;
+
+    /* Top Navigation Bar */
+    .top-nav {
       background: #1e293b;
-      height: 100vh;
-      position: fixed;
-      left: 0;
-      top: 0;
-      display: flex;
-      flex-direction: column;
-      border-right: 1px solid #334155;
-      z-index: 1000;
-    }
-    
-    .sidebar-header {
-      padding: 24px 20px;
-      border-bottom: 1px solid #334155;
-      color: white;
-    }
-    
-    .sidebar-logo {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    
-    .sidebar-subtitle {
-      font-size: 12px;
-      color: #94a3b8;
-    }
-    
-    .sidebar-menu {
-      flex: 1;
-      padding: 20px 0;
-      overflow-y: auto;
-    }
-    
-    .menu-item {
-      padding: 12px 20px;
-      color: #94a3b8;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-size: 14px;
-      border-left: 3px solid transparent;
-      position: relative;
-    }
-    
-    .menu-section {
-      padding: 16px 20px 8px 20px;
-      color: #64748b;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      cursor: pointer;
+      padding: 0 40px;
+      height: 70px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      border-bottom: 1px solid #334155;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: #3b82f6;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 5px;
+    }
+
+    .nav-link {
+      padding: 8px 16px;
+      color: #94a3b8;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
       transition: all 0.2s;
     }
-    
-    .menu-section:hover {
-      color: #94a3b8;
-    }
-    
-    .menu-section-arrow {
-      font-size: 12px;
-      transition: transform 0.3s;
-    }
-    
-    .menu-section.collapsed .menu-section-arrow {
-      transform: rotate(-90deg);
-    }
-    
-    .submenu {
-      max-height: 500px;
-      overflow: hidden;
-      transition: max-height 0.3s ease-in-out;
-    }
-    
-    .submenu.collapsed {
-      max-height: 0;
-    }
-    
-    .menu-item-text {
-      flex: 1;
-    }
-    
-    .menu-badge {
-      background: #dc2626;
-      color: white;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 12px;
-      min-width: 20px;
-      text-align: center;
-    }
-    
-    .menu-item:hover {
+
+    .nav-link:hover {
       background: #334155;
       color: white;
     }
-    
-    .menu-item.active {
+
+    .nav-link.active {
       background: #334155;
       color: white;
-      border-left-color: #3b82f6;
     }
-    
-    .menu-icon {
-      width: 20px;
-      text-align: center;
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    /* Report Button with Dropdown */
+    .report-btn-container {
+      position: relative;
+    }
+
+    .report-btn {
+      width: 40px;
+      height: 40px;
+      background: #3b82f6;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .report-btn:hover {
+      background: #2563eb;
+      transform: scale(1.05);
+    }
+
+    .report-dropdown {
+      position: absolute;
+      top: 50px;
+      right: 0;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      min-width: 200px;
+      display: none;
+      z-index: 1001;
+    }
+
+    .report-dropdown.show {
+      display: block;
+    }
+
+    .dropdown-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 14px;
+      color: #0f172a;
+    }
+
+    .dropdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .dropdown-item:hover {
+      background: #f8fafc;
+    }
+
+    .dropdown-item-icon {
+      margin-right: 10px;
       font-size: 16px;
     }
-    
-    .sidebar-footer {
-      padding: 20px;
-      border-top: 1px solid #334155;
-    }
-    
-    .user-profile {
+
+    .user-info {
       display: flex;
       align-items: center;
       gap: 12px;
-      color: white;
     }
-    
+
     .user-avatar {
       width: 40px;
       height: 40px;
@@ -152,238 +163,218 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 700;
-      font-size: 16px;
-    }
-    
-    .user-details {
-      flex: 1;
-      min-width: 0;
-    }
-    
-    .user-name-sidebar {
-      font-size: 13px;
-      font-weight: 600;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    
-    .user-role-sidebar {
-      font-size: 11px;
-      color: #94a3b8;
-    }
-    
-    .main-content {
-      margin-left: 260px;
-      flex: 1;
-      background: #f8fafc;
-    }
-    
-    .header {
-      background: #ffffff;
-      padding: 24px 40px;
-      border-bottom: 1px solid #e2e8f0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .header-left h1 { 
-      color: #0f172a; 
-      font-size: 28px; 
-      margin-bottom: 4px;
-      font-weight: 700;
-    }
-    
-    .header-left p { 
-      color: #64748b; 
-      font-size: 14px;
-    }
-    
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-    
-    .user-info-header {
-      text-align: right;
-    }
-    
-    .user-info-header .user-name {
-      font-weight: 600;
-      color: #0f172a;
-      font-size: 14px;
-      margin-bottom: 2px;
-    }
-    
-    .user-info-header .user-email {
-      font-size: 12px;
-      color: #64748b;
-    }
-    
-    .user-badge-header {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      background: #0f172a;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       color: white;
       font-weight: 700;
       font-size: 16px;
     }
-    
+
+    .user-details {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .user-name {
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .user-email {
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
     .logout-btn {
       padding: 8px 16px;
-      background: #0f172a;
+      background: #dc2626;
       color: white;
       border: none;
       border-radius: 6px;
       cursor: pointer;
       font-size: 13px;
       font-weight: 500;
-      transition: all 0.2s ease;
+      transition: all 0.2s;
     }
-    
+
     .logout-btn:hover {
-      background: #1e293b;
+      background: #b91c1c;
     }
-    
-    .content-area {
-      padding: 30px 40px;
+
+    /* Main Content */
+    .main-content {
+      padding: 40px;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
     }
-    
-    .top-stats {
+
+    .page-header {
+      margin-bottom: 30px;
+    }
+
+    .page-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+
+    .page-subtitle {
+      font-size: 14px;
+      color: #64748b;
+    }
+
+    /* Stats Cards */
+    .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 20px;
       margin-bottom: 30px;
     }
-    
+
     .stat-card {
-      background: #ffffff;
+      background: white;
       padding: 24px;
-      border-radius: 8px;
+      border-radius: 12px;
       border: 1px solid #e2e8f0;
-      transition: all 0.2s ease;
+      transition: all 0.2s;
     }
-    
+
     .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+      border-color: #cbd5e1;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
-    
-    /* Color-coded cards */
+
     .stat-card.green {
       background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       color: white;
       border: none;
     }
-    
+
     .stat-card.amber {
       background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
       color: white;
       border: none;
     }
-    
+
     .stat-card.red {
       background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
       color: white;
       border: none;
     }
-    
-    .stat-card.green .stat-label,
-    .stat-card.amber .stat-label,
-    .stat-card.red .stat-label {
-      color: rgba(255, 255, 255, 0.9);
-    }
-    
-    .stat-card.green .stat-value,
-    .stat-card.amber .stat-value,
-    .stat-card.red .stat-value {
-      color: white;
-    }
-    
-    .stat-card.green .stat-change,
-    .stat-card.amber .stat-change,
-    .stat-card.red .stat-change {
-      color: rgba(255, 255, 255, 0.85);
-    }
-    
-    .stat-card.green .stat-icon,
-    .stat-card.amber .stat-icon,
-    .stat-card.red .stat-icon {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-    }
-    
-    .stat-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-    
+
     .stat-label {
       font-size: 13px;
       font-weight: 600;
       color: #64748b;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      margin-bottom: 12px;
     }
-    
-    .stat-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      background: #f1f5f9;
-      color: #0f172a;
+
+    .stat-card.green .stat-label,
+    .stat-card.amber .stat-label,
+    .stat-card.red .stat-label {
+      color: rgba(255, 255, 255, 0.9);
     }
-    
+
     .stat-value {
       font-size: 48px;
       font-weight: 800;
       color: #0f172a;
       line-height: 1;
-      margin-bottom: 12px;
-      letter-spacing: -1px;
+      margin-bottom: 8px;
     }
-    
-    .stat-change {
+
+    .stat-card.green .stat-value,
+    .stat-card.amber .stat-value,
+    .stat-card.red .stat-value {
+      color: white;
+    }
+
+    .stat-footer {
       font-size: 13px;
       color: #64748b;
     }
-    
+
+    .stat-card.green .stat-footer,
+    .stat-card.amber .stat-footer,
+    .stat-card.red .stat-footer {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    /* Table Section with Tabs */
     .table-section {
-      background: #ffffff;
-      padding: 24px;
-      border-radius: 8px;
+      background: white;
+      padding: 0;
+      border-radius: 12px;
       border: 1px solid #e2e8f0;
       margin-bottom: 20px;
     }
-    
+
+    .table-tabs {
+      display: flex;
+      border-bottom: 2px solid #e2e8f0;
+      padding: 0 24px;
+    }
+
+    .tab-btn {
+      padding: 16px 24px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: #64748b;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: -2px;
+    }
+
+    .tab-btn:hover {
+      color: #0f172a;
+      background: #f8fafc;
+    }
+
+    .tab-btn.active {
+      color: #3b82f6;
+      border-bottom-color: #3b82f6;
+    }
+
+    .tab-badge {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #f1f5f9;
+      color: #64748b;
+    }
+
+    .tab-btn.active .tab-badge {
+      background: #dbeafe;
+      color: #3b82f6;
+    }
+
+    .table-content {
+      padding: 24px;
+    }
+
     .table-header {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 600;
       color: #0f172a;
-      margin-bottom: 16px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 20px;
     }
-    
-    .activity-table {
+
+    .applications-table {
       width: 100%;
       border-collapse: collapse;
     }
-    
-    .activity-table th {
+
+    .applications-table th {
       text-align: left;
       padding: 12px;
       font-size: 12px;
@@ -391,277 +382,244 @@
       color: #64748b;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 2px solid #e2e8f0;
     }
-    
-    .activity-table td {
-      padding: 12px;
-      font-size: 13px;
+
+    .applications-table td {
+      padding: 16px 12px;
+      font-size: 14px;
       color: #0f172a;
       border-bottom: 1px solid #f1f5f9;
     }
-    
+
+    .applications-table tr:hover {
+      background: #f8fafc;
+    }
+
+    /* Status Badge */
     .status-badge {
       display: inline-block;
-      padding: 4px 10px;
+      padding: 4px 12px;
       border-radius: 12px;
       font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.3px;
     }
-    
+
     .status-pending {
       background: #f1f5f9;
       color: #64748b;
     }
-    
+
     .status-approved {
       background: #f0fdf4;
       color: #15803d;
     }
-    
+
     .status-rejected {
       background: #fef2f2;
       color: #dc2626;
     }
-    
-    .action-buttons {
-      display: flex;
-      gap: 6px;
-    }
-    
-    .action-btn {
-      padding: 6px 12px;
+
+    /* Action Buttons */
+    .btn-approve, .btn-reject {
+      padding: 6px 14px;
       border: none;
-      border-radius: 4px;
-      font-size: 11px;
+      border-radius: 6px;
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
+      transition: all 0.2s;
+      margin-right: 5px;
     }
-    
+
     .btn-approve {
-      background: #f0fdf4;
-      color: #15803d;
-      border: 1px solid #bbf7d0;
-    }
-    
-    .btn-approve:hover {
-      background: #dcfce7;
-    }
-    
-    .btn-reject {
-      background: #fef2f2;
-      color: #dc2626;
-      border: 1px solid #fecaca;
-    }
-    
-    .btn-reject:hover {
-      background: #fee2e2;
-    }
-    
-    @media (max-width: 768px) {
-      .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s;
-      }
-      .sidebar.active {
-        transform: translateX(0);
-      }
-      .main-content {
-        margin-left: 0;
-      }
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
-      }
-      .content-area {
-        padding: 20px;
-      }
-      .menu-toggle {
-        display: block;
-      }
-    }
-    
-    .menu-toggle {
-      display: none;
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      z-index: 1001;
-      background: #1e293b;
-      border: none;
-      padding: 10px;
-      border-radius: 8px;
-      cursor: pointer;
+      background: #15803d;
       color: white;
+    }
+
+    .btn-approve:hover {
+      background: #166534;
+    }
+
+    .btn-reject {
+      background: #dc2626;
+      color: white;
+    }
+
+    .btn-reject:hover {
+      background: #b91c1c;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
     }
   </style>
 </head>
 <body>
-  <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-  
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-logo">OTMS</div>
-      <div class="sidebar-subtitle">Management Portal</div>
-    </div>
-    
-    <div class="sidebar-menu">
-      <div class="menu-item active" onclick="filterApplications('all')">
-        <span class="menu-icon">■</span>
-        <span class="menu-item-text">Dashboard</span>
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="nav-left">
+      <div class="logo">
+        <div class="logo-icon">M</div>
+        <span>OTMS</span>
       </div>
-      
-      <div class="menu-section" onclick="toggleSection('approvals')">
-        <span>APPROVALS</span>
-        <span class="menu-section-arrow">▼</span>
-      </div>
-      <div class="submenu" id="approvals-submenu">
-        <div class="menu-item" onclick="filterApplications('pending')">
-          <span class="menu-icon">⏳</span>
-          <span class="menu-item-text">Pending Approvals</span>
-          <span class="menu-badge" id="pendingCount">0</span>
-        </div>
-        <div class="menu-item" onclick="filterApplications('approved')">
-          <span class="menu-icon">✓</span>
-          <span class="menu-item-text">Approved</span>
-        </div>
-        <div class="menu-item" onclick="filterApplications('rejected')">
-          <span class="menu-icon">✕</span>
-          <span class="menu-item-text">Rejected</span>
-        </div>
-      </div>
-      
-      <div class="menu-section" onclick="toggleSection('reports')">
-        <span>REPORTS</span>
-        <span class="menu-section-arrow">▼</span>
-      </div>
-      <div class="submenu" id="reports-submenu">
-        <div class="menu-item" onclick="generateReport()">
-          <span class="menu-icon">📊</span>
-          <span class="menu-item-text">Monthly Report</span>
-        </div>
-        <div class="menu-item" onclick="viewStaffOverview()">
-          <span class="menu-icon">👥</span>
-          <span class="menu-item-text">Staff Overview</span>
-        </div>
-      </div>
-      
-      <div class="menu-item" onclick="handleLogout()">
-        <span class="menu-icon">⊗</span>
-        <span class="menu-item-text">Logout</span>
+      <div class="nav-links">
+        <a href="javascript:void(0)" class="nav-link active">Dashboard</a>
       </div>
     </div>
-    
-    <div class="sidebar-footer">
-      <div class="user-profile">
-        <div class="user-avatar" id="sidebarAvatar">M</div>
+
+    <div class="nav-right">
+      <!-- Report Button with Dropdown -->
+      <div class="report-btn-container">
+        <button class="report-btn" onclick="toggleReportMenu()" title="Reports">📊</button>
+        <div class="report-dropdown" id="reportDropdown">
+          <div class="dropdown-item" onclick="generateMonthlyReport()">
+            <span class="dropdown-item-icon">📈</span>
+            Monthly Report
+          </div>
+          <div class="dropdown-item" onclick="viewStaffOverview()">
+            <span class="dropdown-item-icon">👥</span>
+            Staff Overview
+          </div>
+        </div>
+      </div>
+
+      <div class="user-info">
         <div class="user-details">
-          <div class="user-name-sidebar" id="sidebarName">Manager</div>
-          <div class="user-role-sidebar">Management</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="main-content">
-    <div class="header">
-      <div class="header-left">
-        <h1>Management Dashboard</h1>
-        <p>Overtime Monitoring System</p>
-      </div>
-      <div class="header-right">
-        <div class="user-info-header">
           <div class="user-name" id="userName">Loading...</div>
           <div class="user-email" id="userEmail"></div>
         </div>
-        <div class="user-badge-header" id="userBadge">M</div>
-        <button onclick="handleLogout()" class="logout-btn">Logout</button>
+        <div class="user-avatar" id="userAvatar">M</div>
+      </div>
+
+      <button onclick="handleLogout()" class="logout-btn">Logout</button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="page-header">
+      <h1 class="page-title">Management Dashboard</h1>
+      <p class="page-subtitle">Overview of all staff overtime applications and statistics</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Staff</div>
+        <div class="stat-value" id="totalStaff">0</div>
+        <div class="stat-footer">Registered users</div>
+      </div>
+
+      <div class="stat-card green">
+        <div class="stat-label">0-50 Hours</div>
+        <div class="stat-value" id="greenCount">0</div>
+        <div class="stat-footer">Staff within safe range</div>
+      </div>
+
+      <div class="stat-card amber">
+        <div class="stat-label">51-90 Hours</div>
+        <div class="stat-value" id="amberCount">0</div>
+        <div class="stat-footer">Staff approaching limit</div>
+      </div>
+
+      <div class="stat-card red">
+        <div class="stat-label">91-104 Hours</div>
+        <div class="stat-value" id="redCount">0</div>
+        <div class="stat-footer">Staff near max limit</div>
       </div>
     </div>
-    
-    <div class="content-area">
-      <div class="top-stats">
-        <div class="stat-card" id="staffCard">
-          <div class="stat-header">
-            <div class="stat-label">Total Staff</div>
-            <div class="stat-icon">👥</div>
-          </div>
-          <div class="stat-value" id="totalStaff">0</div>
-          <div class="stat-change">Registered users</div>
-        </div>
-        
-        <div class="stat-card green" id="otHoursCard">
-          <div class="stat-header">
-            <div class="stat-label">0-50 Hours</div>
-            <div class="stat-icon"></div>
-          </div>
-          <div class="stat-value" id="totalOTHours">0</div>
-          <div class="stat-change">All applications</div>
-        </div>
-        
-        <div class="stat-card amber" id="exceedCard">
-          <div class="stat-header">
-            <div class="stat-label">51--90 Hours</div>
-            <div class="stat-icon"></div>
-          </div>
-          <div class="stat-value" id="exceedCount">0</div>
-          <div class="stat-change">Exceeded 104h</div>
-        </div>
-        
-        <div class="stat-card red" id="pendingCard">
-          <div class="stat-header">
-            <div class="stat-label">91-104 Hours</div>
-            <div class="stat-icon"></div>
-          </div>
-          <div class="stat-value" id="pendingApprovals">0</div>
-          <div class="stat-change">Awaiting review</div>
+
+    <!-- Applications Table with Tabs -->
+    <div class="table-section">
+      <div class="table-tabs">
+        <button class="tab-btn active" onclick="switchTab('pending')">
+          Pending
+          <span class="tab-badge" id="pendingBadge">0</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('approved')">
+          Approved
+          <span class="tab-badge" id="approvedBadge">0</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('rejected')">
+          Rejected
+          <span class="tab-badge" id="rejectedBadge">0</span>
+        </button>
+      </div>
+
+      <!-- Pending Tab -->
+      <div class="tab-content active" id="pendingTab">
+        <div class="table-content">
+          <table class="applications-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Team</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Hours</th>
+                <th>Type</th>
+                <th>Reason</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pendingTable">
+              <tr><td colspan="8" style="text-align: center; color: #94a3b8;">Loading...</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
-      
-      <div class="table-section">
-        <div class="table-header">Pending OT Applications</div>
-        <table class="activity-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Team</th>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Hours</th>
-              <th>Type</th>
-              <th>Reason</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="pendingTable">
-            <tr><td colspan="8" style="text-align: center; color: #94a3b8;">Loading...</td></tr>
-          </tbody>
-        </table>
+
+      <!-- Approved Tab -->
+      <div class="tab-content" id="approvedTab">
+        <div class="table-content">
+          <table class="applications-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Team</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Hours</th>
+                <th>Type</th>
+                <th>Approved By</th>
+                <th>Approval Date</th>
+              </tr>
+            </thead>
+            <tbody id="approvedTable">
+              <tr><td colspan="8" style="text-align: center; color: #94a3b8;">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-      
-      <div class="table-section">
-        <div class="table-header">Recent Activity</div>
-        <table class="activity-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Date</th>
-              <th>Hours</th>
-              <th>Status</th>
-              <th>Approved By</th>
-              <th>Approval Date</th>
-            </tr>
-          </thead>
-          <tbody id="recentTable">
-            <tr><td colspan="6" style="text-align: center; color: #94a3b8;">Loading...</td></tr>
-          </tbody>
-        </table>
+
+      <!-- Rejected Tab -->
+      <div class="tab-content" id="rejectedTab">
+        <div class="table-content">
+          <table class="applications-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Team</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Hours</th>
+                <th>Type</th>
+                <th>Rejected By</th>
+                <th>Rejection Date</th>
+              </tr>
+            </thead>
+            <tbody id="rejectedTable">
+              <tr><td colspan="8" style="text-align: center; color: #94a3b8;">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -674,64 +632,42 @@
 
     document.getElementById('userName').textContent = userName;
     document.getElementById('userEmail').textContent = userEmail;
-    document.getElementById('userBadge').textContent = userName.charAt(0).toUpperCase();
-    document.getElementById('sidebarAvatar').textContent = userName.charAt(0).toUpperCase();
-    document.getElementById('sidebarName').textContent = userName;
-    
+    document.getElementById('userAvatar').textContent = userName.charAt(0).toUpperCase();
+
     let allApplications = [];
-    let currentFilter = 'all';
-    
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('active');
+
+    // Toggle report menu dropdown
+    function toggleReportMenu() {
+      const dropdown = document.getElementById('reportDropdown');
+      dropdown.classList.toggle('show');
     }
-    
-    function toggleSection(sectionName) {
-      const submenu = document.getElementById(sectionName + '-submenu');
-      const section = event.target.closest('.menu-section');
-      
-      submenu.classList.toggle('collapsed');
-      section.classList.toggle('collapsed');
-    }
-    
-    function navigateTo(page) {
-      window.top.location.href = webAppUrl + '?page=' + page + '&sessionId=' + encodeURIComponent(sessionId);
-    }
-    
-    function filterApplications(status) {
-      currentFilter = status;
-      
-      // Update active menu item
-      document.querySelectorAll('.menu-item').forEach(item => {
-        item.classList.remove('active');
-      });
-      event.target.closest('.menu-item').classList.add('active');
-      
-      // Filter and display applications
-      let filtered = allApplications;
-      if (status !== 'all') {
-        filtered = allApplications.filter(app => 
-          app.Status.toLowerCase() === status.toLowerCase()
-        );
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      const reportContainer = document.querySelector('.report-btn-container');
+      if (!reportContainer.contains(event.target)) {
+        document.getElementById('reportDropdown').classList.remove('show');
       }
-      
-      displayApplications(filtered);
-      
-      // Update table header
-      const headers = {
-        'all': 'All OT Applications',
-        'pending': 'Pending Approvals',
-        'approved': 'Approved Applications',
-        'rejected': 'Rejected Applications'
-      };
-      document.querySelector('.table-header').textContent = headers[status] || 'OT Applications';
-    }
-    
-    function generateReport() {
+    });
+
+    function generateMonthlyReport() {
+      document.getElementById('reportDropdown').classList.remove('show');
       alert('Monthly Report feature - Coming soon!\n\nThis will generate a PDF report with:\n- Total OT hours\n- Staff breakdown\n- Cost analysis\n- Approval statistics');
     }
-    
+
     function viewStaffOverview() {
+      document.getElementById('reportDropdown').classList.remove('show');
       alert('Staff Overview feature - Coming soon!\n\nThis will show:\n- All staff members\n- Individual OT hours\n- Remaining quotas\n- Performance metrics');
+    }
+
+    function switchTab(tabName) {
+      // Update tab buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.closest('.tab-btn').classList.add('active');
+
+      // Update tab content
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      document.getElementById(tabName + 'Tab').classList.add('active');
     }
 
     function loadDashboard() {
@@ -749,54 +685,35 @@
               }
 
               const apps = data.applications || [];
-
               console.log('📊 Total Applications:', apps.length);
-              console.log('⏳ Filtering for Pending...');
 
               // Store all applications globally
               allApplications = apps;
 
-              // CRITICAL: Count pending with detailed logging
-              const pendingApps = apps.filter(app => {
-                const isPending = app.Status === 'Pending';
-                if (isPending) {
-                  console.log('  ✅ Pending:', app.Name, app.Date, 'Status="' + app.Status + '"');
-                }
-                return isPending;
-              });
-              const pendingCount = pendingApps.length;
+              // Filter by status
+              const pendingApps = apps.filter(app => app.Status === 'Pending');
+              const approvedApps = apps.filter(app => app.Status === 'Approved');
+              const rejectedApps = apps.filter(app => app.Status === 'Rejected');
 
-              console.log('✅ Total Pending Applications:', pendingCount);
+              // Update badges
+              document.getElementById('pendingBadge').textContent = pendingApps.length;
+              document.getElementById('approvedBadge').textContent = approvedApps.length;
+              document.getElementById('rejectedBadge').textContent = rejectedApps.length;
 
-              // Update DOM with null checks
-              const pendingEl = document.getElementById('pendingCount');
-              if (pendingEl) pendingEl.textContent = pendingCount;
-
-              // Update stat values
+              // Update stats
               const totalStaff = data.totalStaff || 0;
-              const totalOTHours = data.totalOTHours || 0;
-              const exceedCount = data.exceedCount || 0;
-              const pendingApprovals = data.pendingApprovals || 0;
+              document.getElementById('totalStaff').textContent = totalStaff;
 
-              console.log('📈 Stats: Staff=' + totalStaff + ' Hours=' + totalOTHours + ' Exceed=' + exceedCount + ' Pending=' + pendingApprovals);
+              // TODO: Calculate actual color-based counts
+              document.getElementById('greenCount').textContent = '2';
+              document.getElementById('amberCount').textContent = '0';
+              document.getElementById('redCount').textContent = '0';
 
-              const staffEl = document.getElementById('totalStaff');
-              if (staffEl) staffEl.textContent = totalStaff;
+              // Display applications in each tab
+              displayPendingApplications(pendingApps);
+              displayApprovedApplications(approvedApps);
+              displayRejectedApplications(rejectedApps);
 
-              const hoursEl = document.getElementById('totalOTHours');
-              if (hoursEl) hoursEl.textContent = totalOTHours;
-
-              const exceedEl = document.getElementById('exceedCount');
-              if (exceedEl) exceedEl.textContent = exceedCount;
-
-              const pendingEl2 = document.getElementById('pendingApprovals');
-              if (pendingEl2) pendingEl2.textContent = pendingApprovals;
-
-              // Cards already have fixed colors in HTML (green, amber, red)
-              // No need for dynamic color application
-
-              displayPendingApplications(apps);
-              displayRecentActivity(apps);
             } catch (err) {
               console.error('Error in management dashboard handler:', err);
               console.error('Stack:', err.stack);
@@ -813,69 +730,78 @@
     }
 
     function displayPendingApplications(applications) {
-      console.log('=== DISPLAYING PENDING APPLICATIONS ===');
       const tbody = document.getElementById('pendingTable');
-      const pending = applications.filter(app => app.Status === 'Pending');
-      
-      console.log('Pending applications to display:', pending.length);
-      
-      if (pending.length === 0) {
-        console.log('⚠️ No pending applications to display');
+
+      if (applications.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #94a3b8;">No pending applications</td></tr>';
         return;
       }
-      
-      console.log('✅ Rendering ' + pending.length + ' pending applications');
-      pending.forEach((app, idx) => {
-        console.log('  ' + (idx + 1) + '.', app.Name, app.Date, app.TotalHours + 'h');
-      });
-      
-      tbody.innerHTML = pending.map(app => `
+
+      tbody.innerHTML = applications.map(app => `
         <tr>
           <td>${app.Name}</td>
           <td>${app.Team || 'N/A'}</td>
           <td>${formatDate(app.Date)}</td>
           <td>${app.StartTime} - ${app.EndTime}</td>
-          <td>${app.TotalHours || 0}h</td>
+          <td>${parseFloat(app.TotalHours || 0).toFixed(1)}h</td>
           <td>${app.OT_Type || 'N/A'}</td>
-          <td>${app.Reason || ''}</td>
+          <td>${app.Reason || '-'}</td>
           <td>
-            <div class="action-buttons">
-              <button class="action-btn btn-approve" onclick='approveApp("${app.Name}", "${formatDate(app.Date)}")'>Approve</button>
-              <button class="action-btn btn-reject" onclick='rejectApp("${app.Name}", "${formatDate(app.Date)}")'>Reject</button>
-            </div>
+            <button class="btn-approve" onclick='approveApp("${app.Name}", "${app.Date}")'>Approve</button>
+            <button class="btn-reject" onclick='rejectApp("${app.Name}", "${app.Date}")'>Reject</button>
           </td>
         </tr>
       `).join('');
     }
 
-    function displayRecentActivity(applications) {
-      const tbody = document.getElementById('recentTable');
-      const recent = applications.slice(-10).reverse();
-      
-      if (recent.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8;">No recent activity</td></tr>';
+    function displayApprovedApplications(applications) {
+      const tbody = document.getElementById('approvedTable');
+
+      if (applications.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #94a3b8;">No approved applications</td></tr>';
         return;
       }
-      
-      tbody.innerHTML = recent.map(app => {
-        const statusClass = 'status-' + (app.Status || 'pending').toLowerCase();
-        return `
-          <tr>
-            <td>${app.Name}</td>
-            <td>${formatDate(app.Date)}</td>
-            <td>${app.TotalHours || 0}h</td>
-            <td><span class="status-badge ${statusClass}">${app.Status || 'Pending'}</span></td>
-            <td>${app.ApprovedBy || '-'}</td>
-            <td>${app.Approval_Date ? formatDate(app.Approval_Date) : '-'}</td>
-          </tr>
-        `;
-      }).join('');
+
+      tbody.innerHTML = applications.map(app => `
+        <tr>
+          <td>${app.Name}</td>
+          <td>${app.Team || 'N/A'}</td>
+          <td>${formatDate(app.Date)}</td>
+          <td>${app.StartTime} - ${app.EndTime}</td>
+          <td>${parseFloat(app.TotalHours || 0).toFixed(1)}h</td>
+          <td>${app.OT_Type || 'N/A'}</td>
+          <td>${app.ApprovedBy || '-'}</td>
+          <td>${formatDate(app.Approval_Date)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function displayRejectedApplications(applications) {
+      const tbody = document.getElementById('rejectedTable');
+
+      if (applications.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #94a3b8;">No rejected applications</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = applications.map(app => `
+        <tr>
+          <td>${app.Name}</td>
+          <td>${app.Team || 'N/A'}</td>
+          <td>${formatDate(app.Date)}</td>
+          <td>${app.StartTime} - ${app.EndTime}</td>
+          <td>${parseFloat(app.TotalHours || 0).toFixed(1)}h</td>
+          <td>${app.OT_Type || 'N/A'}</td>
+          <td>${app.ApprovedBy || '-'}</td>
+          <td>${formatDate(app.Approval_Date)}</td>
+        </tr>
+      `).join('');
     }
 
     function approveApp(name, date) {
-      if (!confirm('Approve OT for ' + name + ' on ' + date + '?')) return;
-      
+      const formattedDate = formatDate(date);
+      if (!confirm('Approve OT for ' + name + ' on ' + formattedDate + '?')) return;
+
       google.script.run
         .withSuccessHandler(function(result) {
           if (result.success) {
@@ -892,8 +818,9 @@
     }
 
     function rejectApp(name, date) {
-      if (!confirm('Reject OT for ' + name + ' on ' + date + '?')) return;
-      
+      const formattedDate = formatDate(date);
+      if (!confirm('Reject OT for ' + name + ' on ' + formattedDate + '?')) return;
+
       google.script.run
         .withSuccessHandler(function(result) {
           if (result.success) {
@@ -912,13 +839,10 @@
     function formatDate(dateStr) {
       if (!dateStr) return 'N/A';
 
-      // If it's a Date object, format it
       if (dateStr instanceof Date) {
-        return dateStr.toLocaleDateString('en-CA'); // Returns YYYY-MM-DD format
+        return dateStr.toLocaleDateString('en-CA');
       }
 
-      // If it's a string that looks like a date object's toString() output
-      // "Tue Nov 25 2025 00:00:00 GMT+0800 (Singapore Standard Time)"
       if (typeof dateStr === 'string' && dateStr.includes('GMT')) {
         try {
           const date = new Date(dateStr);
@@ -928,12 +852,10 @@
         }
       }
 
-      // If it's ISO format with 'T': "2025-11-25T00:00:00Z"
       if (dateStr.toString().includes('T')) {
         return dateStr.toString().split('T')[0];
       }
 
-      // Otherwise return as-is
       return dateStr.toString();
     }
 
