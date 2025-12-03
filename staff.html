@@ -1127,7 +1127,7 @@
         return `
           <tr>
             <td>${formatDate(app.Date)}</td>
-            <td>${app.StartTime} - ${app.EndTime}</td>
+            <td>${formatTime(app.StartTime)} - ${formatTime(app.EndTime)}</td>
             <td>${parseFloat(app.TotalHours || 0).toFixed(1)}h</td>
             <td>${app.OT_Type || 'N/A'}</td>
             <td>${app.Reason || '-'}</td>
@@ -1355,6 +1355,37 @@
 
       // Otherwise return as-is
       return dateStr.toString();
+    }
+
+    function formatTime(timeStr) {
+      if (!timeStr) return '';
+
+      // If it's already in HH:mm format, return as-is
+      if (typeof timeStr === 'string' && /^\d{1,2}:\d{2}(:\d{2})?$/.test(timeStr)) {
+        // Remove seconds if present (HH:mm:ss -> HH:mm)
+        return timeStr.split(':').slice(0, 2).join(':');
+      }
+
+      // If it's a Date object or date string
+      if (timeStr instanceof Date) {
+        const hours = timeStr.getHours().toString().padStart(2, '0');
+        const mins = timeStr.getMinutes().toString().padStart(2, '0');
+        return hours + ':' + mins;
+      }
+
+      // If it's a string that looks like a date
+      if (typeof timeStr === 'string' && (timeStr.includes('GMT') || timeStr.includes('T'))) {
+        try {
+          const date = new Date(timeStr);
+          const hours = date.getHours().toString().padStart(2, '0');
+          const mins = date.getMinutes().toString().padStart(2, '0');
+          return hours + ':' + mins;
+        } catch (e) {
+          return timeStr;
+        }
+      }
+
+      return timeStr.toString();
     }
 
     function handleLogout() {
