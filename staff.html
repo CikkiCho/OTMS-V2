@@ -464,6 +464,236 @@
     .btn-cancel:hover {
       background: #5a6268;
     }
+
+    /* OT Application Modal */
+    .ot-modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .ot-modal-overlay.active {
+      display: flex;
+    }
+
+    .ot-modal-content {
+      background: white;
+      padding: 0;
+      border-radius: 16px;
+      max-width: 600px;
+      width: 95%;
+      max-height: 90vh;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .ot-modal-header {
+      background: #1e293b;
+      color: white;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ot-modal-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ot-modal-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 28px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+      line-height: 1;
+    }
+
+    .ot-modal-close:hover {
+      opacity: 1;
+    }
+
+    .ot-modal-body {
+      padding: 24px;
+      max-height: calc(90vh - 140px);
+      overflow-y: auto;
+    }
+
+    .ot-info-box {
+      background: #f0fdf4;
+      border-left: 4px solid #15803d;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+    }
+
+    .ot-info-box p {
+      color: #166534;
+      font-size: 14px;
+      margin: 4px 0;
+    }
+
+    .ot-info-box .remaining-hours {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .ot-block-warning {
+      display: none;
+      background: #fef2f2;
+      border: 2px solid #dc2626;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      color: #991b1b;
+    }
+
+    .ot-block-warning strong {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .ot-form-group {
+      margin-bottom: 20px;
+    }
+
+    .ot-form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #0f172a;
+      font-size: 14px;
+    }
+
+    .ot-form-group label .required {
+      color: #dc2626;
+    }
+
+    .ot-form-group input,
+    .ot-form-group select,
+    .ot-form-group textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .ot-form-group input:focus,
+    .ot-form-group select:focus,
+    .ot-form-group textarea:focus {
+      outline: none;
+      border-color: #15803d;
+      box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
+    }
+
+    .ot-form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .ot-form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .ot-form-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .ot-modal-footer {
+      padding: 16px 24px 24px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .ot-modal-footer button {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .ot-btn-cancel {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+
+    .ot-btn-cancel:hover {
+      background: #e2e8f0;
+    }
+
+    .ot-btn-submit {
+      background: #15803d;
+      color: white;
+    }
+
+    .ot-btn-submit:hover {
+      background: #166534;
+    }
+
+    .ot-btn-submit:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .ot-success-message,
+    .ot-error-message {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      display: none;
+      font-size: 14px;
+    }
+
+    .ot-success-message {
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .ot-error-message {
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
   </style>
 </head>
 <body>
@@ -607,6 +837,80 @@
           <button type="submit" class="btn-save">Save Changes</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- OT Application Modal -->
+  <div class="ot-modal-overlay" id="otApplicationModal">
+    <div class="ot-modal-content">
+      <div class="ot-modal-header">
+        <h2>📝 Apply for Overtime</h2>
+        <button class="ot-modal-close" onclick="closeOTModal()">&times;</button>
+      </div>
+      <div class="ot-modal-body">
+        <div id="otSuccessMessage" class="ot-success-message"></div>
+        <div id="otErrorMessage" class="ot-error-message"></div>
+        
+        <div class="ot-info-box">
+          <p><strong>Name:</strong> <span id="otUserName"></span></p>
+          <p><strong>Team:</strong> <span id="otUserTeam"></span></p>
+          <p><strong>Remaining OT Hours:</strong> <span id="otRemainingHours" class="remaining-hours">Loading...</span></p>
+        </div>
+        
+        <div id="otBlockWarning" class="ot-block-warning">
+          <strong>⚠️ OT Limit Reached!</strong>
+          <p>You have reached or exceeded the 104-hour limit. New OT applications are blocked.</p>
+        </div>
+        
+        <form id="otApplicationForm">
+          <div class="ot-form-group">
+            <label>OT Date <span class="required">*</span></label>
+            <input type="date" id="otDate" required>
+          </div>
+          
+          <div class="ot-form-row-3">
+            <div class="ot-form-group">
+              <label>Start Time <span class="required">*</span></label>
+              <input type="time" id="otStartTime" required>
+            </div>
+            <div class="ot-form-group">
+              <label>End Time <span class="required">*</span></label>
+              <input type="time" id="otEndTime" required>
+            </div>
+            <div class="ot-form-group">
+              <label>Total Hours</label>
+              <input type="number" id="otTotalHours" step="0.5" min="0.5" readonly>
+            </div>
+          </div>
+          
+          <div class="ot-form-row">
+            <div class="ot-form-group">
+              <label>OT Type <span class="required">*</span></label>
+              <select id="otType" required>
+                <option value="">Select OT Type</option>
+                <option value="Operation">Operation</option>
+                <option value="Project">Project</option>
+              </select>
+            </div>
+            <div class="ot-form-group">
+              <label>Public Holiday?</label>
+              <select id="otPublicHoliday">
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="ot-form-group">
+            <label>Remark <span class="required">*</span></label>
+            <textarea id="otReason" placeholder="Please provide details about the overtime work..." required></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="ot-modal-footer">
+        <button type="button" class="ot-btn-cancel" onclick="closeOTModal()">Cancel</button>
+        <button type="button" class="ot-btn-submit" id="otSubmitBtn" onclick="submitOTApplication()">Submit Application</button>
+      </div>
     </div>
   </div>
 
@@ -839,8 +1143,192 @@
 
     function applyNewOT() {
       document.getElementById('addDropdown').classList.remove('show');
-      window.top.location.href = webAppUrl + '?page=ot-application&sessionId=' + encodeURIComponent(sessionId);
+      openOTModal();
     }
+
+    // ========== OT APPLICATION MODAL FUNCTIONS ==========
+    let userRemainingHours = 104;
+
+    function openOTModal() {
+      // Populate user info
+      document.getElementById('otUserName').textContent = userName;
+      document.getElementById('otUserTeam').textContent = userTeam;
+      
+      // Set default date to today
+      document.getElementById('otDate').valueAsDate = new Date();
+      
+      // Reset form
+      document.getElementById('otApplicationForm').reset();
+      document.getElementById('otDate').valueAsDate = new Date();
+      hideOTMessages();
+      
+      // Update remaining hours display
+      const remainingDisplay = document.getElementById('otRemainingHours');
+      const remainingEl = document.getElementById('remainingHours');
+      const currentRemaining = parseFloat(remainingEl.textContent) || 104;
+      userRemainingHours = currentRemaining;
+      
+      remainingDisplay.textContent = currentRemaining.toFixed(1) + 'h / 104h';
+      
+      // Check if blocked
+      const submitBtn = document.getElementById('otSubmitBtn');
+      const blockWarning = document.getElementById('otBlockWarning');
+      
+      if (currentRemaining <= 0) {
+        remainingDisplay.style.color = '#dc2626';
+        blockWarning.style.display = 'block';
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'OT Limit Reached';
+      } else if (currentRemaining <= 14) {
+        remainingDisplay.style.color = '#ea580c';
+        blockWarning.style.display = 'none';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Application';
+      } else {
+        remainingDisplay.style.color = '#15803d';
+        blockWarning.style.display = 'none';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Application';
+      }
+      
+      // Show modal
+      document.getElementById('otApplicationModal').classList.add('active');
+    }
+
+    function closeOTModal() {
+      document.getElementById('otApplicationModal').classList.remove('active');
+      document.getElementById('otApplicationForm').reset();
+      hideOTMessages();
+    }
+
+    function hideOTMessages() {
+      document.getElementById('otSuccessMessage').style.display = 'none';
+      document.getElementById('otErrorMessage').style.display = 'none';
+    }
+
+    function showOTError(message) {
+      const el = document.getElementById('otErrorMessage');
+      el.textContent = message;
+      el.style.display = 'block';
+      document.getElementById('otSuccessMessage').style.display = 'none';
+    }
+
+    function showOTSuccess(message) {
+      const el = document.getElementById('otSuccessMessage');
+      el.textContent = message;
+      el.style.display = 'block';
+      document.getElementById('otErrorMessage').style.display = 'none';
+    }
+
+    // Auto-calculate OT hours
+    document.getElementById('otStartTime').addEventListener('change', calculateOTHours);
+    document.getElementById('otEndTime').addEventListener('change', calculateOTHours);
+    document.getElementById('otStartTime').addEventListener('input', calculateOTHours);
+    document.getElementById('otEndTime').addEventListener('input', calculateOTHours);
+
+    function calculateOTHours() {
+      const startTime = document.getElementById('otStartTime').value;
+      const endTime = document.getElementById('otEndTime').value;
+      
+      if (startTime && endTime) {
+        const start = new Date('2000-01-01 ' + startTime);
+        const end = new Date('2000-01-01 ' + endTime);
+        
+        if (end < start) {
+          end.setDate(end.getDate() + 1); // Handle overnight OT
+        }
+        
+        const diffMs = end - start;
+        const hours = diffMs / (1000 * 60 * 60);
+        document.getElementById('otTotalHours').value = hours.toFixed(2);
+      }
+    }
+
+    function submitOTApplication() {
+      hideOTMessages();
+      
+      const formData = {
+        name: userName,
+        team: userTeam,
+        date: document.getElementById('otDate').value,
+        startTime: document.getElementById('otStartTime').value,
+        endTime: document.getElementById('otEndTime').value,
+        totalHours: parseFloat(document.getElementById('otTotalHours').value),
+        otType: document.getElementById('otType').value,
+        isPublicHoliday: document.getElementById('otPublicHoliday').value,
+        proofAttendance: '',
+        reason: document.getElementById('otReason').value,
+        status: 'Pending',
+        approvedBy: '',
+        approvalDate: ''
+      };
+      
+      // Validate
+      if (!formData.date || !formData.startTime || !formData.endTime) {
+        showOTError('Please fill in all required fields');
+        return;
+      }
+      
+      if (!formData.otType) {
+        showOTError('Please select an OT Type');
+        return;
+      }
+      
+      if (!formData.reason) {
+        showOTError('Please provide a remark');
+        return;
+      }
+      
+      if (formData.totalHours <= 0 || isNaN(formData.totalHours)) {
+        showOTError('Total hours must be greater than 0');
+        return;
+      }
+      
+      // Check if exceeds remaining hours
+      if (formData.totalHours > userRemainingHours) {
+        showOTError('Cannot apply! Requested ' + formData.totalHours + 'h exceeds your remaining ' + userRemainingHours.toFixed(1) + 'h.');
+        return;
+      }
+      
+      // Disable submit button
+      const submitBtn = document.getElementById('otSubmitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            showOTSuccess('OT Application submitted successfully!');
+            
+            // Close modal after short delay and refresh dashboard
+            setTimeout(function() {
+              closeOTModal();
+              loadDashboard();
+            }, 1500);
+          } else {
+            let errorMsg = result.message || 'Failed to submit application';
+            if (result.remainingHours !== undefined) {
+              errorMsg += ' (Remaining: ' + result.remainingHours.toFixed(1) + 'h)';
+            }
+            showOTError(errorMsg);
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Application';
+          }
+        })
+        .withFailureHandler(function(error) {
+          showOTError('Error: ' + error.message);
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Application';
+        })
+        .submitOTApplication(formData);
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('otApplicationModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeOTModal();
+      }
+    });
 
     function formatDate(dateStr) {
       if (!dateStr) return 'N/A';
